@@ -1,0 +1,58 @@
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#0b1220;font-family:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;user-select:none}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#game{display:block;border-radius:0}
+#ui{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.hidden{display:none!important}
+
+.panel{pointer-events:auto;background:rgba(10,18,34,.82);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:34px 30px;
+  text-align:center;color:#fff;box-shadow:0 24px 70px rgba(0,0,0,.55);max-width:88%;width:400px}
+
+.logo{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:10px}
+.logo-bird{font-size:64px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.4));animation:bounce 1.6s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-12px) rotate(6deg)}}
+h1{font-size:44px;font-weight:900;letter-spacing:2px;line-height:1;
+  background:linear-gradient(180deg,#ffd94a,#ff8a3c);-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 4px 18px rgba(255,160,60,.25)}
+h1 span{display:block;font-size:44px}
+.tag{color:#9fd0ff;font-size:15px;margin:10px 0 20px;font-weight:600}
+
+.btn{display:block;width:100%;margin:10px 0;padding:16px;font-size:22px;font-weight:800;letter-spacing:2px;
+  color:#231a00;background:linear-gradient(180deg,#ffe066,#ffab2e);border:none;border-radius:14px;cursor:pointer;
+  box-shadow:0 6px 0 #c97a12,0 12px 26px rgba(0,0,0,.4);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #c97a12,0 6px 14px rgba(0,0,0,.4)}
+.btn.ghost{background:transparent;color:#cfe3ff;border:2px solid rgba(255,255,255,.25);box-shadow:none;font-size:16px;padding:12px}
+
+.howto{margin-top:18px;text-align:left;font-size:14px;color:#c8d6ea}
+.howto p{margin-bottom:6px}
+.howto ul{list-style:none}
+.howto li{padding:5px 0;border-bottom:1px dashed rgba(255,255,255,.08)}
+.howto .tip{margin-top:10px;color:#8fa8c8;font-size:12.5px}
+
+/* HUD */
+#hud{position:absolute;inset:0;pointer-events:none}
+#score{position:absolute;top:18px;left:0;right:0;text-align:center;font-size:46px;font-weight:900;color:#fff;
+  text-shadow:0 3px 0 rgba(0,0,0,.45),0 6px 18px rgba(0,0,0,.5);letter-spacing:1px}
+#volwrap{position:absolute;left:16px;bottom:96px;display:flex;flex-direction:column;align-items:center;gap:4px}
+#volbar{width:16px;height:130px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.25);border-radius:9px;
+  display:flex;align-items:flex-end;overflow:hidden}
+#volfill{width:100%;height:0%;border-radius:8px;background:linear-gradient(180deg,#ff4d4d,#ffd24a 45%,#43d67c 80%);transition:height .06s linear}
+#vollabel{font-size:10px;font-weight:700;color:#cfe3ff;text-shadow:0 1px 3px #000}
+
+#countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+#cdnum{font-size:120px;font-weight:900;color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.4),0 12px 40px rgba(0,0,0,.6);
+  animation:pop .8s ease-out}
+@keyframes pop{0%{transform:scale(2.2);opacity:0}40%{transform:scale(1);opacity:1}100%{transform:scale(.92);opacity:.9}}
+
+/* GAME OVER */
+#over h2{font-size:38px;font-weight:900;letter-spacing:3px;color:#ff6b6b;text-shadow:0 4px 14px rgba(255,80,80,.35);margin-bottom:14px}
+#newbest{font-size:18px;font-weight:800;color:#ffd94a;margin-bottom:12px;animation:shine 1s ease-in-out infinite alternate}
+@keyframes shine{from{transform:scale(1)}to{transform:scale(1.08)}}
+.stats{display:flex;gap:14px;justify-content:center;margin:14px 0 22px}
+.stat{flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:14px 8px}
+.stat label{font-size:11px;letter-spacing:2px;color:#8fa8c8;font-weight:700}
+.stat div{font-size:30px;font-weight:900;color:#fff;margin-top:4px}
+
+#toast{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);background:rgba(200,40,40,.92);
+  color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;max-width:86%;text-align:center}

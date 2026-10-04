@@ -24,12 +24,14 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then BASE=""; fi
           if ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then BASE=""; fi
           SLUGS=$(node scripts/ci-detect.mjs "$BASE")
+          REMOVED=$(node scripts/ci-removed.mjs "$BASE")
           echo "slugs=$SLUGS" >> "$GITHUB_OUTPUT"
-          echo "apps yang berubah: $SLUGS"
+          echo "removed=$REMOVED" >> "$GITHUB_OUTPUT"
+          echo "apps yang berubah: $SLUGS | dihapus: $REMOVED"
 
   build:
     needs: detect
-    if: needs.detect.outputs.slugs != '[]'
+    if: needs.detect.outputs.slugs != '[]' || needs.detect.outputs.removed != '[]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -99,6 +101,10 @@ jobs:
       - name: Merge built apps into site
         run: |
           shopt -s nullglob
+          for slug in $(node -e 'process.stdout.write(process.argv[1].replace(/[\[\]"]/g,"")+"\n")' '${{ needs.detect.outputs.removed }}'); do
+            rm -rf "site/$slug"
+            echo "✘ site/$slug dihapus (app dihapus dari repo)"
+          done
           for d in artifacts/app-*/; do
             slug="${d#artifacts/app-}"; slug="${slug%/}"
             rm -rf "site/$slug"

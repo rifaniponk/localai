@@ -19,4 +19,7 @@ for (const f of files) {
   const m = f.match(/^apps\/([^/]+)\//);
   if (m) slugs.add(m[1]);
 }
-process.stdout.write(JSON.stringify([...slugs]));
+// skip apps whose folder no longer exists (deleted apps)
+import { existsSync } from "node:fs";
+const alive = [...slugs].filter(s => existsSync(`apps/${s}/app.json`));
+process.stdout.write(JSON.stringify(alive));
