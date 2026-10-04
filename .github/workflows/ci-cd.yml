@@ -31,7 +31,7 @@ jobs:
 
   build:
     needs: detect
-    if: needs.detect.outputs.slugs != '[]' || needs.detect.outputs.removed != '[]'
+    if: needs.detect.outputs.slugs != '[]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -65,7 +65,7 @@ jobs:
 
   deploy:
     needs: [detect, build]
-    if: always() && needs.build.result != 'failure'
+    if: always() && (needs.build.result == 'success' || needs.build.result == 'skipped')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
