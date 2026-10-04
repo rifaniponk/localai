@@ -95,6 +95,7 @@ jobs:
           if [ -f CNAME ]; then cp CNAME site/CNAME; else rm -f site/CNAME; fi
           node scripts/build-manifest.mjs site/manifest.json
       - uses: actions/download-artifact@v4
+        if: needs.detect.outputs.slugs != '[]'
         with:
           pattern: app-*
           path: artifacts
