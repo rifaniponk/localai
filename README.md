@@ -76,19 +76,6 @@ For other stacks (e.g. Angular): scaffold manually, then create `app.json` with 
 
    `"build": ""` means static — files are copied as-is (`"dist": "."`).
 
-## Commit conventions
-
-- Commit messages are **always in English**.
-- Author: `Rifan M Fauzi <rifaniponk@users.noreply.github.com>`.
-
-## Hosting notes
-
-- GitHub Pages, deployed by the workflow (`build_type: workflow`).
-- Custom domain `localai.ponkcoding.com` is a CNAME record in Squarespace DNS
-  (Squarespace domains are DNS-hosted by Cloudflare behind the scenes).
-- While the custom-domain TLS certificate is pending, the site is also reachable at
-  <https://rifaniponk.github.io/localai/>.
-
 ## App catalog
 
 The authoritative catalog is generated at build time into `manifest.json`
