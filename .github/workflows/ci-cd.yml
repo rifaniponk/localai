@@ -124,18 +124,6 @@ jobs:
               }
             }
           '
-      - name: Push gh-pages
-        run: |
-          cd site
-          git init -q
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -q -b gh-pages
-          git add -A
-          git commit -q -m "deploy ${GITHUB_SHA::7} $(date -u +%FT%TZ)"
-          git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" gh-pages
-        env:
-          GITHUB_TOKEN: "${{ github.token }}"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
