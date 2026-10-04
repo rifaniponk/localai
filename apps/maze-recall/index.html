@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>MAZE RECALL — Trace It From Memory</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="stage">
+  <canvas id="game"></canvas>
+
+  <div id="ui">
+    <!-- MENU -->
+    <div id="menu" class="panel">
+      <div class="logo">
+        <div class="logo-brain">🧠</div>
+        <h1>MAZE<span>RECALL</span></h1>
+      </div>
+      <p class="tag">👁️ Memorize the path · ✏️ Trace it from memory</p>
+      <button id="btn-start" class="btn">START</button>
+      <div class="howto">
+        <p><b>How to play:</b></p>
+        <ul>
+          <li>👁️ A glowing path is shown for <b>10 seconds</b> — burn it into your memory</li>
+          <li>✏️ The path vanishes. Drag from the <b>green start</b> to the <b>flag</b></li>
+          <li>💥 One wrong cell = instant game over</li>
+          <li>🏆 10 levels, each maze gets bigger. Beat them all to win</li>
+        </ul>
+        <p class="tip">💡 You can lift your finger and continue from where you left off.</p>
+      </div>
+      <div id="menu-best" class="best hidden">BEST: LEVEL <b id="best-lvl">1</b></div>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div id="lvlchip">LEVEL <b id="lvl">1</b><span id="lvlbar"><i id="lvlfill"></i></span></div>
+      <div id="phase"><span id="phase-icon">👁️</span><span id="phase-text">MEMORIZE</span><span id="timer">10</span></div>
+    </div>
+
+    <!-- GAME OVER -->
+    <div id="over" class="panel hidden">
+      <div class="over-emoji">💥</div>
+      <h2>WRONG TURN!</h2>
+      <p class="tag" id="over-sub">The correct path is revealed — study it.</p>
+      <div class="stats">
+        <div class="stat"><label>REACHED</label><div id="ov-lvl">1</div></div>
+        <div class="stat"><label>BEST</label><div id="ov-best">1</div></div>
+      </div>
+      <button id="btn-retry" class="btn">RETRY</button>
+      <button id="btn-menu" class="btn ghost">MENU</button>
+    </div>
+
+    <!-- VICTORY -->
+    <div id="win" class="panel hidden">
+      <div class="over-emoji win-emoji">🏆</div>
+      <h2 class="win-title">MEMORY MASTER!</h2>
+      <p class="tag">All 10 mazes traced flawlessly. Legendary recall.</p>
+      <div class="stats">
+        <div class="stat"><label>LEVELS</label><div>10/10</div></div>
+        <div class="stat"><label>PERFECT</label><div>✔</div></div>
+      </div>
+      <button id="btn-again" class="btn">PLAY AGAIN</button>
+    </div>
+
+    <div id="toast" class="hidden"></div>
+  </div>
+</div>
+<script src="js/audio.js"></script>
+<script src="js/maze.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
