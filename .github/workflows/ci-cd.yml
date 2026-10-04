@@ -112,6 +112,18 @@ jobs:
             cp -r "$d." "site/$slug/"
             echo "✔ site/$slug diperbarui"
           done
+          # prune: any site folder that is neither a current app nor landing file
+          node -e '
+            const fs=require("fs");
+            const apps=fs.readdirSync("apps").filter(s=>fs.existsSync(`apps/${s}/app.json`));
+            const landing=fs.readdirSync("landing");
+            for (const d of fs.readdirSync("site")) {
+              if (fs.statSync(`site/${d}`).isDirectory() && !apps.includes(d)) {
+                fs.rmSync(`site/${d}`,{recursive:true});
+                console.log("✘ site/"+d+" dihapus (bukan app aktif)");
+              }
+            }
+          '
       - name: Push gh-pages
         run: |
           cd site
