@@ -19,6 +19,7 @@ jobs:
       - id: d
         run: |
           BASE="${{ github.event.before }}"
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then BASE=""; fi
           if ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then BASE=""; fi
           SLUGS=$(node scripts/ci-detect.mjs "$BASE")
           echo "slugs=$SLUGS" >> "$GITHUB_OUTPUT"
