@@ -196,8 +196,8 @@
 
   document.getElementById("year").textContent = new Date().getFullYear();
 
-  // back-to-ponkcoding link gets the coin SFX too
-  const back = document.querySelector(".backlink");
+  // operator badge (back to ponkcoding.com) gets the coin SFX
+  const back = document.querySelector(".operator");
   if (back) {
     back.addEventListener("pointerenter", () => blip(740, 0.04, "square", 0.05));
     back.addEventListener("click", () => coinSound());

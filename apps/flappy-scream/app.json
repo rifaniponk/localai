@@ -1,7 +1,7 @@
 {
   "name": "Flappy Scream",
   "slug": "flappy-scream",
-  "description": "Flappy Bird clone di canvas — burung berparuh teriak, tap/spasi untuk terbang.",
+  "description": "Flappy Bird clone on canvas — a screaming bird, tap/space (or your loudest yell) to fly.",
   "stack": "vanilla",
   "status": "live",
   "created": "2026-10-04",

@@ -201,26 +201,13 @@ footer#dock {
   position: sticky; bottom: 0; z-index: 30;
   border-top: 2px solid var(--line);
   padding: .7rem 1.5rem;
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  text-align: center;
   background: linear-gradient(rgba(0,0,0,.72), rgba(0,0,0,.92));
   backdrop-filter: blur(8px);
   box-shadow: 0 -12px 30px rgba(0,0,0,.55);
 }
 footer .fine { color: var(--muted); font-family: var(--font-p); font-size: .5rem; letter-spacing: .08em; margin: 0; }
 
-/* ponkcoding back link — "player 1" pixel avatar + neon wordmark */
-.backlink {
-  display: flex; align-items: center; gap: .8rem;
-  text-decoration: none; color: var(--ink);
-  border: 2px solid var(--line); background: rgba(16,10,38,.85);
-  padding: .45rem .9rem;
-  box-shadow: 0 0 0 2px #000;
-  transition: border-color .2s, box-shadow .25s, transform .2s;
-}
-.backlink:hover {
-  border-color: var(--cyan); transform: translateY(-2px);
-  box-shadow: 0 0 0 2px #000, 0 0 22px rgba(38,229,255,.45);
-}
 .p1 {
   width: 34px; height: 34px; display: block;
   image-rendering: pixelated;               /* pixel-art touch on the logo */
@@ -228,16 +215,8 @@ footer .fine { color: var(--muted); font-family: var(--font-p); font-size: .5rem
   filter: saturate(1.25) contrast(1.08);
   transition: filter .25s, outline-color .2s;
 }
-.backlink:hover .p1 { outline-color: var(--cyan); filter: saturate(1.5) contrast(1.12) drop-shadow(0 0 6px rgba(38,229,255,.6)); }
-.p1txt { font-family: var(--font-p); font-size: .6rem; letter-spacing: .06em; }
-.backlink:hover .p1txt { color: var(--yellow); text-shadow: 0 0 10px rgba(255,210,63,.55); }
-.press {
-  font-family: var(--font-p); font-size: .45rem; color: var(--muted);
-  border-left: 1px solid var(--line); padding-left: .8rem;
-}
-.backlink:hover .press { color: var(--cyan); animation: blink 1s steps(1) infinite; }
 
-/* operator badge in hero */
+/* operator badge in hero — doubles as back link to ponkcoding.com */
 .operator {
   display: inline-flex; align-items: center; gap: .7rem;
   margin-bottom: 1.4rem;
@@ -245,15 +224,19 @@ footer .fine { color: var(--muted); font-family: var(--font-p); font-size: .5rem
   padding: .4rem .9rem;
   font-family: var(--font-p); font-size: .5rem; color: var(--muted);
   box-shadow: 0 0 0 2px #000;
+  text-decoration: none;
+  transition: border-color .2s, box-shadow .25s, transform .2s;
 }
+.operator:hover {
+  border-color: var(--cyan); transform: translateY(-2px);
+  box-shadow: 0 0 0 2px #000, 0 0 22px rgba(38,229,255,.45);
+}
+.operator:hover .p1 { outline-color: var(--cyan); filter: saturate(1.5) contrast(1.12) drop-shadow(0 0 6px rgba(38,229,255,.6)); }
 .operator b { color: var(--cyan); }
+.operator:hover b { color: var(--yellow); text-shadow: 0 0 10px rgba(255,210,63,.55); }
+.operator .ext { color: var(--pink); }
+.operator:hover .ext { animation: blink 1s steps(1) infinite; }
 .p1.mini { width: 26px; height: 26px; }
-
-@media (max-width: 700px) {
-  footer#dock { justify-content: center; }
-  footer .fine { display: none; }
-  .press { display: none; }
-}
 
 /* ---------- responsive ---------- */
 @media (max-width: 700px) {
