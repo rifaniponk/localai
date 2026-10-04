@@ -2,10 +2,12 @@
 (() => {
   'use strict';
 
-  // ---------- level table: [cols, rows] ----------
+  // ---------- level table: [cols, rows, extraWalls, minRoutes] ----------
+  // extraWalls = internal walls knocked down -> loops -> many decoy routes.
+  // minRoutes = guaranteed number of distinct start->finish routes.
   const LEVELS = [
-    [5, 5], [6, 5], [6, 6], [7, 6], [7, 7],
-    [8, 7], [8, 8], [9, 8], [9, 9], [10, 9]
+    [5, 5, 3, 4], [6, 5, 4, 5], [6, 6, 5, 6], [7, 6, 6, 8], [7, 7, 7, 10],
+    [8, 7, 8, 12], [8, 8, 9, 15], [9, 8, 10, 18], [9, 9, 11, 22], [10, 9, 12, 26]
   ];
   const MEMORIZE_MS = 10000;
   const BEST_KEY = 'mazerec…t';
@@ -77,10 +79,21 @@
 
   // ---------- level lifecycle ----------
   function loadLevel() {
-    [cols, rows] = LEVELS[level - 1];
-    const rng = mulberry32((Date.now() ^ (level * 7919)) >>> 0);
-    walls = genMaze(cols, rows, rng);
-    solution = solveMaze(cols, rows, walls);
+    const [c, r, extra, minRoutes] = LEVELS[level - 1];
+    cols = c; rows = r;
+    // regenerate until: winding path is long enough, has open decoy branches,
+    // and the maze truly offers many distinct routes (>= minRoutes)
+    let tries = 0;
+    for (;;) {
+      const rng = mulberry32((Date.now() ^ (level * 7919) ^ (tries * 104729)) >>> 0);
+      walls = genMaze(cols, rows, rng);
+      braidMaze(cols, rows, walls, rng, extra);
+      solution = randomPath(cols, rows, walls, rng);
+      if (solution.length >= cols + rows + 2 &&
+          hasDecoyBranch(cols, rows, walls, solution) &&
+          countRoutes(cols, rows, walls, minRoutes + 1) >= minRoutes) break;
+      if (++tries > 60) break; // safety valve: accept last attempt
+    }
     solSet = new Set(solution);
     traced = [];
     errorCell = -1;
