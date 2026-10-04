@@ -96,4 +96,4 @@ The authoritative catalog is generated at build time into `manifest.json`
 
 | App | Stack | Route |
 |---|---|---|
-| [Hello AI](https://localai.ponkcoding.com/hello-ai/) | vanilla | `/hello-ai/` |
+| [Flappy Scream](https://localai.ponkcoding.com/flappy-scream/) | vanilla | `/flappy-scream/` |

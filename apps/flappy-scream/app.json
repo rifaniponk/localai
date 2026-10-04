@@ -1,0 +1,10 @@
+{
+  "name": "Flappy Scream",
+  "slug": "flappy-scream",
+  "description": "Flappy Bird clone di canvas — burung berparuh teriak, tap/spasi untuk terbang.",
+  "stack": "vanilla",
+  "status": "live",
+  "created": "2026-10-04",
+  "build": "",
+  "dist": "."
+}
