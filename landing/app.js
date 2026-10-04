@@ -196,6 +196,13 @@
 
   document.getElementById("year").textContent = new Date().getFullYear();
 
+  // back-to-ponkcoding link gets the coin SFX too
+  const back = document.querySelector(".backlink");
+  if (back) {
+    back.addEventListener("pointerenter", () => blip(740, 0.04, "square", 0.05));
+    back.addEventListener("click", () => coinSound());
+  }
+
   // welcome chord once fonts settled (silent until user gesture — browsers require it)
   addEventListener("load", () => { if (musicOn) powerChord(); });
 })();
