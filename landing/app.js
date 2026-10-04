@@ -196,6 +196,22 @@
 
   document.getElementById("year").textContent = new Date().getFullYear();
 
+  /* ============ TOKENS USED: one-shot count-up on first load ============ */
+  const tokEl = document.getElementById("tokens");
+  if (tokEl && !reduced) {
+    const target = Number(tokEl.dataset.value) || 0;
+    const dur = 1600; // ms — arcade odometer roll
+    const t0 = performance.now();
+    const tick = now => {
+      const p = Math.min(1, (now - t0) / dur);
+      const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic: fast roll, slow settle
+      tokEl.textContent = Math.round(target * eased).toLocaleString("en-US");
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    tokEl.textContent = "0";
+    requestAnimationFrame(tick);
+  }
+
   // operator badge (back to ponkcoding.com) gets the coin SFX
   const back = document.querySelector(".operator");
   if (back) {
