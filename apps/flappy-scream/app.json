@@ -6,5 +6,6 @@
   "status": "live",
   "created": "2026-10-04",
   "build": "",
-  "dist": "."
+  "dist": ".",
+  "thumb": "thumb.png"
 }
