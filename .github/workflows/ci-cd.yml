@@ -1,0 +1,110 @@
+name: ci-cd
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      slugs: ${{ steps.d.outputs.slugs }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: d
+        run: |
+          BASE="${{ github.event.before }}"
+          if ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then BASE=""; fi
+          SLUGS=$(node scripts/ci-detect.mjs "$BASE")
+          echo "slugs=$SLUGS" >> "$GITHUB_OUTPUT"
+          echo "apps yang berubah: $SLUGS"
+
+  build:
+    needs: detect
+    if: needs.detect.outputs.slugs != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        slug: ${{ fromJSON(needs.detect.outputs.slugs) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: cfg
+        run: |
+          node -e '
+            const fs=require("fs");
+            const m=JSON.parse(fs.readFileSync(process.argv[1]+"/app.json","utf8"));
+            fs.appendFileSync(process.env.GITHUB_OUTPUT,"build="+(m.build||"")+"\ndist="+(m.dist||".")+"\n");
+          ' "apps/${{ matrix.slug }}"
+      - name: Build app
+        if: steps.cfg.outputs.build != ''
+        working-directory: apps/${{ matrix.slug }}
+        env:
+          BUILD: ${{ steps.cfg.outputs.build }}
+        run: bash -c "$BUILD"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-${{ matrix.slug }}
+          path: apps/${{ matrix.slug }}/${{ steps.cfg.outputs.dist }}
+          if-no-files-found: error
+
+  deploy:
+    needs: [detect, build]
+    if: always() && needs.build.result != 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch previous gh-pages
+        id: prev
+        run: |
+          if git ls-remote --exit-code origin gh-pages >/dev/null 2>&1; then
+            git fetch origin gh-pages --depth=1
+            git worktree add ../prev origin/gh-pages
+            rm -rf ../prev/.git
+            cp -r ../prev/. site/
+            echo "has_prev=true" >> "$GITHUB_OUTPUT"
+          else
+            mkdir -p site
+          fi
+      - name: Landing + manifest
+        run: |
+          cp -r landing/. site/
+          cp CNAME site/CNAME
+          node scripts/build-manifest.mjs site/manifest.json
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: app-*
+          path: artifacts
+      - name: Merge built apps into site
+        run: |
+          shopt -s nullglob
+          for d in artifacts/app-*/; do
+            slug="${d#artifacts/app-}"; slug="${slug%/}"
+            rm -rf "site/$slug"
+            mkdir -p "site/$slug"
+            cp -r "$d." "site/$slug/"
+            echo "✔ site/$slug diperbarui"
+          done
+      - name: Push gh-pages
+        run: |
+          cd site
+          git init -q
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -q -b gh-pages
+          git add -A
+          git commit -q -m "deploy ${GITHUB_SHA::7} $(date -u +%FT%TZ)"
+          git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" gh-pages
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
