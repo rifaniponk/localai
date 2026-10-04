@@ -43,7 +43,9 @@ jobs:
           node -e '
             const fs=require("fs");
             const m=JSON.parse(fs.readFileSync(process.argv[1]+"/app.json","utf8"));
-            fs.appendFileSync(process.env.GITHUB_OUTPUT,"build="+(m.build||"")+"\ndist="+(m.dist||".")+"\n");
+            const dist=m.dist||".";
+            const path=dist==="."?process.argv[1]:(process.argv[1]+"/"+dist);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT,"build="+(m.build||"")+"\ndist="+dist+"\npath="+path+"\n");
           ' "apps/${{ matrix.slug }}"
       - name: Build app
         if: steps.cfg.outputs.build != ''
@@ -54,7 +56,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: app-${{ matrix.slug }}
-          path: apps/${{ matrix.slug }}/${{ steps.cfg.outputs.dist }}
+          path: ${{ steps.cfg.outputs.path }}
           if-no-files-found: error
 
   deploy:
