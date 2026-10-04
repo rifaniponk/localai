@@ -43,7 +43,7 @@ async function startGame() {
     try {
       await voice.start();
     } catch (e) {
-      toast.textContent = '⚠️ Mic tidak tersedia — game jalan tapi kontrol suara mati. Izinkan akses mic & muat ulang.';
+      toast.textContent = '⚠️ Mic unavailable — game runs, but voice controls are off. Allow mic access & reload.';
       show(toast);
       setTimeout(() => hide(toast), 4000);
     }
