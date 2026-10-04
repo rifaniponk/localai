@@ -90,7 +90,7 @@ jobs:
       - name: Landing + manifest
         run: |
           cp -r landing/. site/
-          cp CNAME site/CNAME
+          if [ -f CNAME ]; then cp CNAME site/CNAME; else rm -f site/CNAME; fi
           node scripts/build-manifest.mjs site/manifest.json
       - uses: actions/download-artifact@v4
         with:
