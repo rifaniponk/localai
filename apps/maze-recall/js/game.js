@@ -243,7 +243,7 @@
   // ---------- layout ----------
   function layout() {
     const padX = Math.min(W, H) * 0.05;
-    const top = 74, bottom = 34;
+    const top = 108, bottom = 34;
     cell = Math.floor(Math.min((W - padX * 2) / cols, (H - top - bottom) / rows));
     ox = Math.round((W - cols * cell) / 2);
     oy = Math.round(top + (H - top - bottom - rows * cell) / 2);
