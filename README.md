@@ -24,9 +24,8 @@ localai/
 │   ├── new-app.sh          # scaffold a new app (vanilla | vite)
 │   ├── build-manifest.mjs  # scan apps/*/app.json -> manifest.json
 │   └── ci-detect.mjs       # list app slugs changed in a push
-├── .github/workflows/
-│   └── ci-cd.yml           # path-filtered CI/CD -> GitHub Pages
-└── PLAN.md                 # project conventions & progress log (source of truth)
+└── .github/workflows/
+    └── ci-cd.yml           # path-filtered CI/CD -> GitHub Pages
 ```
 
 ## How CI/CD works
