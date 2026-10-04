@@ -65,7 +65,12 @@ jobs:
     needs: [detect, build]
     if: always() && needs.build.result != 'failure'
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.page.outputs.page_url }}
     steps:
+      - id: page
+        uses: actions/configure-pages@v5
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
