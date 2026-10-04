@@ -77,20 +77,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Fetch previous gh-pages
-        id: prev
-        run: |
-          if git ls-remote --exit-code origin gh-pages >/dev/null 2>&1; then
-            git fetch origin gh-pages --depth=1
-            git worktree add ../prev origin/gh-pages
-            rm -rf ../prev/.git
-            cp -r ../prev/. site/
-            echo "has_prev=true" >> "$GITHUB_OUTPUT"
-          else
-            mkdir -p site
-          fi
       - name: Landing + manifest
         run: |
+          mkdir -p site
           cp -r landing/. site/
           if [ -f CNAME ]; then cp CNAME site/CNAME; else rm -f site/CNAME; fi
           node scripts/build-manifest.mjs site/manifest.json
@@ -99,32 +88,31 @@ jobs:
         with:
           pattern: app-*
           path: artifacts
-      - name: Merge built apps into site
+      - name: Assemble full site (artifacts + repo)
         run: |
           shopt -s nullglob
           for slug in $(node -e 'process.stdout.write(process.argv[1].replace(/[\[\]"]/g,"")+"\n")' '${{ needs.detect.outputs.removed }}'); do
-            rm -rf "site/$slug"
-            echo "✘ site/$slug dihapus (app dihapus dari repo)"
+            echo "✘ $slug dihapus dari repo — tidak ikut di-assemble"
           done
-          for d in artifacts/app-*/; do
-            slug="${d#artifacts/app-}"; slug="${slug%/}"
-            rm -rf "site/$slug"
+          for appdir in apps/*/; do
+            slug="$(basename "$appdir")"
+            [ -f "$appdir/app.json" ] || continue
+            dist=$(node -e 'const m=require("./"+process.argv[1]);process.stdout.write(m.dist||".")' "$appdir/app.json")
+            build=$(node -e 'const m=require("./"+process.argv[1]);process.stdout.write(m.build||"")' "$appdir/app.json")
+            if [ -d "artifacts/app-$slug" ]; then
+              src="artifacts/app-$slug"
+              [ "$dist" != "." ] && src="$src/$dist"
+            elif [ -n "$build" ]; then
+              # app with build step but unchanged in this push: build inline
+              (cd "$appdir" && bash -c "$build")
+              src="$appdir$dist"; [ "$dist" = "." ] && src="$appdir"
+            else
+              src="$appdir"
+            fi
             mkdir -p "site/$slug"
-            cp -r "$d." "site/$slug/"
-            echo "✔ site/$slug diperbarui"
+            cp -r "$src/." "site/$slug/"
+            echo "✔ site/$slug"
           done
-          # prune: any site folder that is neither a current app nor landing file
-          node -e '
-            const fs=require("fs");
-            const apps=fs.readdirSync("apps").filter(s=>fs.existsSync(`apps/${s}/app.json`));
-            const landing=fs.readdirSync("landing");
-            for (const d of fs.readdirSync("site")) {
-              if (fs.statSync(`site/${d}`).isDirectory() && !apps.includes(d)) {
-                fs.rmSync(`site/${d}`,{recursive:true});
-                console.log("✘ site/"+d+" dihapus (bukan app aktif)");
-              }
-            }
-          '
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
