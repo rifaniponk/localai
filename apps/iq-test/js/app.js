@@ -81,6 +81,7 @@
   function renderItem() {
     const it = state.items[state.idx];
     state.locked = false;
+    document.body.classList.remove('hover-ok'); // hover only after real mouse movement
     $('#qidx').textContent = state.idx + 1;
     $('#qbar').style.width = (state.idx / state.items.length * 100) + '%';
     $('#qcat').textContent = CATLABEL[it.cat];
@@ -102,6 +103,12 @@
     });
     // keyboard shortcuts
   }
+
+  // enable hover effects only after the user actually moves the pointer,
+  // so a stationary cursor over a re-rendered option never looks "pre-highlighted"
+  addEventListener('mousemove', () => {
+    if (!document.body.classList.contains('hover-ok')) document.body.classList.add('hover-ok');
+  }, { passive: true });
 
   function answer(i, el) {
     if (state.locked || state.done) return;
