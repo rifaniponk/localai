@@ -62,39 +62,75 @@
     };
   }
   function genMatrix(rnd) {
+    // same rule templates, fresh numbers per session: random offsets on sides/dots
+    const ri = (a, c) => a + Math.floor(rnd() * (c - a + 1));
+    const off = () => ({ s: ri(0, 3), d: ri(0, 2) });
+    const mk = (fn, b, tier) => { const o = off(); return mkMatrix((r, c) => { const s = fn(r, c, o); return { sides: Math.min(9, s.sides + o.s), fill: s.fill, dots: s.dots, rot: s.rot }; }, b, tier); };
     return [
-      mkMatrix((r, c) => ({ sides: 3 + c, fill: false, dots: 0, rot: 0 }), -1.2, 'easy'),
-      mkMatrix((r, c) => ({ sides: 3 + r, fill: false, dots: 0, rot: c * 45 }), -0.9, 'easy'),
-      mkMatrix((r, c) => ({ sides: 4, fill: (r + c) % 2 === 0, dots: r + 1, rot: 0 }), -0.4, 'med'),
-      mkMatrix((r, c) => ({ sides: 3 + c, fill: r % 2 === 1, dots: c + 1, rot: 0 }), -0.1, 'med'),
-      mkMatrix((r, c) => ({ sides: 3 + r + c, fill: c % 2 === 1, dots: r + 1, rot: 0 }), 0.5, 'hard'),
-      mkMatrix((r, c) => ({ sides: 4 + ((r + c) % 3), fill: (r * c) % 2 === 0, dots: ((r + c) % 3) + 1, rot: 0 }), 1.0, 'hard')
+      mk((r, c, o) => ({ sides: 3 + c, fill: false, dots: 0, rot: 0 }), -1.2, 'easy'),
+      mk((r, c, o) => ({ sides: 3 + r, fill: false, dots: 0, rot: c * 45 }), -0.9, 'easy'),
+      mk((r, c, o) => ({ sides: 4, fill: (r + c) % 2 === 0, dots: r + 1, rot: 0 }), -0.4, 'med'),
+      mk((r, c, o) => ({ sides: 3 + c, fill: r % 2 === 1, dots: c + 1, rot: 0 }), -0.1, 'med'),
+      mk((r, c, o) => ({ sides: 3 + r + c, fill: c % 2 === 1, dots: r + 1, rot: 0 }), 0.5, 'hard'),
+      mk((r, c, o) => ({ sides: 4 + ((r + c) % 3), fill: (r * c) % 2 === 0, dots: ((r + c) % 3) + 1, rot: 0 }), 1.0, 'hard')
     ];
   }
 
-  // ---------- number / figure series ----------
-  function numSeries(seq, ans, b, tier) {
+  // ---------- number / figure series (procedural: same template, fresh numbers per session) ----------
+  function numSeriesGen(rnd, b, tier) {
+    const ri = (a, c) => a + Math.floor(rnd() * (c - a + 1));
+    let seq, ans, rule;
+    const kind = ['arith', 'geom', 'fib', 'muladd', 'dbl', 'sq'][Math.floor(rnd() * 6)];
+    if (kind === 'arith') {
+      const s = ri(1, 9), d = ri(2, 9);
+      seq = [s, s + d, s + 2 * d, s + 3 * d];
+      if (rnd() < .5) seq.push(s + 4 * d);
+      ans = seq[seq.length - 1] + d; rule = { kind, d };
+    } else if (kind === 'geom') {
+      const s = ri(2, 4), q = ri(2, 3);
+      seq = [s, s * q, s * q * q, s * q * q * q];
+      ans = seq[3] * q; rule = { kind, q };
+    } else if (kind === 'fib') {
+      const a = ri(1, 5), c = ri(1, 5);
+      seq = [a, c, a + c, a + 2 * c, 2 * a + 3 * c];
+      ans = seq[3] + seq[4]; rule = { kind };
+    } else if (kind === 'muladd') {
+      const s = ri(2, 5), m = ri(2, 3), k = ri(1, 3);
+      seq = [s]; for (let i = 0; i < 3; i++) seq.push(seq[i] * m + k);
+      ans = seq[3] * m + k; rule = { kind, m, k };
+    } else if (kind === 'dbl') {
+      const s = ri(1, 6), inc = ri(1, 4);
+      seq = [s]; let d = ri(1, 4);
+      for (let i = 0; i < 4; i++) { seq.push(seq[i] + d); d += inc; }
+      ans = seq[4] + d; rule = { kind, inc };
+    } else { // perfect squares
+      const n0 = ri(1, 4);
+      seq = [n0 * n0, (n0 + 1) * (n0 + 1), (n0 + 2) * (n0 + 2), (n0 + 3) * (n0 + 3)];
+      ans = (n0 + 4) * (n0 + 4); rule = { kind };
+    }
     const last = seq[seq.length - 1], prev = seq[seq.length - 2];
     const diff = last - prev;
     const cands = [last + diff, 2 * last - prev, last + 2, last - diff, last + diff + 2, last + diff - 1, prev, last + Math.round(diff / 2)];
     const wrong = [];
     for (const c of cands) {
-      if (c !== ans && !wrong.includes(c)) wrong.push(c);
+      if (c !== ans && c > 0 && !wrong.includes(c)) wrong.push(c);
       if (wrong.length === 3) break;
     }
     return {
-      id: 'se' + (++uid), cat: 'series', tier, b,
+      id: 'se' + (++uid), cat: 'series', tier, b, rule,
       prompt: 'What number comes next?  ' + seq.join(', ') + ', ?',
       figure: null,
       options: [String(ans)].concat(wrong.map(String)).map(v => ({ kind: 'txt', v })),
       answer: 0
     };
   }
-  function figSeries(rots, b, tier) {
-    const step = rots[1] - rots[0];
+  function figSeriesGen(rnd, b, tier) {
     const norm = r => ((r % 360) + 360) % 360;
-    const ansRot = norm(rots[rots.length - 1] + step);
-    const candRots = [norm(rots[rots.length - 1] - step), norm(rots[rots.length - 1] + step * 2), norm(rots[rots.length - 1] + 90), norm(rots[rots.length - 1] - 90)];
+    const step = [15, 30, 45, 60, 90, 120][Math.floor(rnd() * 6)] * (rnd() < .5 ? 1 : -1);
+    const start = Math.floor(rnd() * 24) * 15;
+    const rots = [start, start + step, start + 2 * step, start + 3 * step];
+    const ansRot = norm(rots[3] + step);
+    const candRots = [norm(rots[3] - step), norm(rots[3] + step * 2), norm(rots[3] + 90), norm(rots[3] - 90)];
     const wrongRots = candRots.filter(r => r !== ansRot).slice(0, 3);
     return {
       id: 'se' + (++uid), cat: 'series', tier, b,
@@ -104,16 +140,16 @@
       answer: 0
     };
   }
-  function genSeries() {
+  function genSeries(rnd) {
     return [
-      numSeries([7, 15, 23, 31], 39, -1.2, 'easy'),
-      numSeries([3, 6, 12, 24], 48, -0.9, 'easy'),
-      figSeries([0, 45, 90, 135], -0.5, 'med'),
-      numSeries([2, 5, 11, 23], 47, -0.2, 'med'),
-      numSeries([1, 1, 2, 3, 5], 8, 0.2, 'med'),
-      numSeries([4, 6, 9, 13, 18], 23, 0.5, 'hard'),
-      numSeries([2, 3, 5, 9, 17], 33, 0.9, 'hard'),
-      figSeries([30, 120, 210, 300], 0.7, 'hard')
+      numSeriesGen(rnd, -1.2, 'easy'),
+      numSeriesGen(rnd, -0.9, 'easy'),
+      figSeriesGen(rnd, -0.5, 'med'),
+      numSeriesGen(rnd, -0.2, 'med'),
+      numSeriesGen(rnd, 0.2, 'med'),
+      numSeriesGen(rnd, 0.5, 'hard'),
+      numSeriesGen(rnd, 0.9, 'hard'),
+      figSeriesGen(rnd, 0.7, 'hard')
     ];
   }
 
@@ -202,13 +238,16 @@
       answer: oppIdx
     };
   }
-  function genSpatial() {
+  function genSpatial(rnd) {
+    const ri = (a, c) => a + Math.floor(rnd() * (c - a + 1));
+    const px = () => ri(20, 45), py = () => ri(20, 80);
+    const p1 = [px(), py()], p2 = [px(), py()];
     return [
       rotationItem(90, -1.2, 'easy'),
-      foldItem('v', [30, 35], [[30, 35], [70, 35]], -0.6, 'med'),
+      foldItem('v', p1, [[p1[0], p1[1]], [100 - p1[0], p1[1]]], -0.6, 'med'),
       netItem([[1, 0], [0, 1], [1, 1], [2, 1], [3, 1], [1, 2]], 1, -0.3, 'med'),
       rotationItem(135, 0.3, 'hard'),
-      foldItem('v', [35, 60], [[35, 60], [65, 60]], 0.5, 'hard'),
+      foldItem('v', p2, [[p2[0], p2[1]], [100 - p2[0], p2[1]]], 0.5, 'hard'),
       netItem([[0, 0], [1, 0], [2, 0], [2, 1], [3, 1], [4, 1]], 0, 0.9, 'hard')
     ];
   }
@@ -257,7 +296,7 @@
   // ---------- adaptive selection ----------
   const CAPS = { matrix: 4, series: 3, spatial: 3, verbal: 3, logic: 3 };
   function buildPool(rnd) {
-    const pool = [].concat(genMatrix(rnd), genSeries(), genSpatial(), genVerbal(), genLogic());
+    const pool = [].concat(genMatrix(rnd), genSeries(rnd), genSpatial(rnd), genVerbal(), genLogic());
     // shuffle within same (cat,tier) so variants differ per run
     return pool;
   }
