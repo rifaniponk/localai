@@ -1,0 +1,11 @@
+{
+  "name": "Math Dungeon",
+  "slug": "math-dungeon",
+  "description": "Explore dungeons, battle monsters, and open treasure by solving math. Grade 1-6 adaptive curriculum powers every sword swing.",
+  "stack": "vanilla",
+  "status": "draft",
+  "created": "2026-10-05",
+  "build": "",
+  "dist": ".",
+  "thumb": "thumb.png"
+}

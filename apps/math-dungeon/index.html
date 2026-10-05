@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Math Dungeon — Learn. Battle. Conquer.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+<div id="stage">
+  <canvas id="game"></canvas>
+
+  <!-- HUD (exploration) -->
+  <div id="hud" class="hidden">
+    <div class="hud-left">
+      <div class="hud-portrait"><canvas id="hudPortrait" width="52" height="52"></canvas></div>
+      <div class="hud-bars">
+        <div class="bar hpbar"><div id="hpFill"></div><span id="hpText">50/50</span></div>
+        <div class="bar xpbar"><div id="xpFill"></div><span id="lvText">LV 1</span></div>
+      </div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-chip" id="comboChip">COMBO ×2</div>
+      <div class="hud-chip gold"><span class="coin-ico"></span><b id="goldText">0</b></div>
+      <div class="hud-chip room" id="roomText">Room 1/9</div>
+      <button id="btnPause" class="icon-btn" aria-label="Pause">⏸</button>
+    </div>
+  </div>
+
+  <!-- interaction hint -->
+  <div id="interactHint" class="hidden"><span id="interactLabel">OPEN</span></div>
+
+  <!-- touch controls -->
+  <div id="touchUI" class="hidden">
+    <div id="stick"><div id="knob"></div></div>
+    <button id="btnInteract">ACT</button>
+  </div>
+
+  <!-- battle question panel -->
+  <div id="battlePanel" class="hidden">
+    <div class="bp-inner">
+      <div id="bpPrompt"></div>
+      <canvas id="bpVis" class="hidden" width="360" height="90"></canvas>
+      <div id="bpAnswers"></div>
+      <div id="bpFeedback" class="hidden">
+        <div id="bpFbTitle"></div>
+        <div id="bpFbText"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- battle action button (potion) -->
+  <button id="btnPotion" class="hidden">🧪 <span id="potionCount">0</span></button>
+
+  <!-- ============ SCREENS ============ -->
+  <section id="scrMenu" class="screen">
+    <div class="menu-wrap">
+      <div class="title-kicker">PONKCODING PRESENTS</div>
+      <h1 class="game-title">MATH<br><span>DUNGEON</span></h1>
+      <p class="tagline">Learn. Battle. Conquer.</p>
+      <div class="menu-btns">
+        <button class="big-btn" id="btnPlay">▶ PLAY</button>
+        <button class="big-btn" id="btnContinue">CONTINUE</button>
+        <button class="big-btn ghost" id="btnHowto">HOW TO PLAY</button>
+        <button class="big-btn ghost" id="btnStatsMenu">PROGRESS</button>
+      </div>
+      <div class="menu-foot">Best experienced in landscape 🏰</div>
+    </div>
+  </section>
+
+  <section id="scrProfile" class="screen hidden">
+    <div class="panel">
+      <h2>What grade are you in?</h2>
+      <p class="sub">Your dungeon will contain challenges made for your level.</p>
+      <div id="gradeGrid" class="grade-grid"></div>
+      <div class="age-row">
+        <label for="ageSel">Age (optional)</label>
+        <select id="ageSel"></select>
+      </div>
+      <div id="gradeMsg" class="grade-msg"></div>
+      <button class="big-btn" id="btnGradeNext" disabled>NEXT ➜</button>
+    </div>
+  </section>
+
+  <section id="scrHero" class="screen hidden">
+    <div class="panel">
+      <h2>Choose your hero</h2>
+      <div id="heroGrid" class="hero-grid"></div>
+      <button class="big-btn" id="btnHeroNext" disabled>ENTER THE DUNGEON ⚔</button>
+    </div>
+  </section>
+
+  <section id="scrHowto" class="screen hidden">
+    <div class="panel">
+      <h2>How to Play</h2>
+      <div class="howto-grid">
+        <div>🕹 <b>Move</b> — WASD / arrows, or the joystick on touch screens.</div>
+        <div>👆 <b>Interact</b> — walk up to things and press <b>E</b> / <b>Space</b> / <b>ACT</b>.</div>
+        <div>⚔ <b>Battle</b> — answer math correctly to attack. Wrong answers let the monster hit back — but you get a hint first!</div>
+        <div>🔥 <b>Combo</b> — consecutive correct answers power up your strikes.</div>
+        <div>💎 <b>Treasure</b> — chests may hide gold, potions, or a puzzle.</div>
+        <div>⭐ <b>Stars</b> — finish dungeons with high accuracy to earn 3 stars.</div>
+      </div>
+      <button class="big-btn" id="btnHowtoBack">BACK</button>
+    </div>
+  </section>
+
+  <section id="scrPause" class="screen hidden">
+    <div class="panel small">
+      <h2>Paused</h2>
+      <div class="menu-btns">
+        <button class="big-btn" id="btnResume">RESUME</button>
+        <button class="big-btn ghost" id="btnPauseHowto">HOW TO PLAY</button>
+        <div class="toggle-row"><span>Sound</span><button class="tgl" id="tglSound">ON</button></div>
+        <div class="toggle-row"><span>Music</span><button class="tgl" id="tglMusic">ON</button></div>
+        <button class="big-btn ghost" id="btnRestartDun">RESTART DUNGEON</button>
+        <button class="big-btn ghost" id="btnQuitMenu">MAIN MENU</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="scrVictory" class="screen hidden">
+    <div class="panel victory">
+      <h2 class="vic-title">DUNGEON COMPLETE!</h2>
+      <div id="vicStars" class="stars">☆ ☆ ☆</div>
+      <div id="vicStats" class="vic-stats"></div>
+      <div class="menu-btns">
+        <button class="big-btn" id="btnNextDun">NEXT DUNGEON ➜</button>
+        <button class="big-btn ghost" id="btnReplay">REPLAY</button>
+        <button class="big-btn ghost" id="btnUpgrades">UPGRADES 🛠</button>
+        <button class="big-btn ghost" id="btnVicMenu">MAIN MENU</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="scrDefeat" class="screen hidden">
+    <div class="panel small">
+      <h2>The dungeon got the better of you…</h2>
+      <p class="sub">Every hero retreats sometimes. Your gold and XP are safe!</p>
+      <div class="menu-btns">
+        <button class="big-btn" id="btnRetry">TRY AGAIN</button>
+        <button class="big-btn ghost" id="btnDefeatMenu">MAIN MENU</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="scrUpgrade" class="screen hidden">
+    <div class="panel">
+      <h2>Hero Upgrades</h2>
+      <div class="shop-gold">Gold: <b id="shopGold">0</b> 🪙</div>
+      <div id="shopList" class="shop-list"></div>
+      <button class="big-btn" id="btnShopBack">BACK</button>
+    </div>
+  </section>
+
+  <section id="scrStats" class="screen hidden">
+    <div class="panel">
+      <h2>Learning Progress</h2>
+      <div id="statsSummary" class="stats-summary"></div>
+      <div id="statsCats" class="stats-cats"></div>
+      <div class="row-btns">
+        <button class="big-btn" id="btnStatsBack">BACK</button>
+        <button class="big-btn danger ghost" id="btnReset">RESET PROGRESS</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="toast" class="hidden"></div>
+  <div id="debug" class="hidden"></div>
+</div>
+
+<script src="./js/math.js"></script>
+<script src="./js/audio.js"></script>
+<script src="./js/storage.js"></script>
+<script src="./js/dungeon.js"></script>
+<script src="./js/entities.js"></script>
+<script src="./js/battle.js"></script>
+<script src="./js/ui.js"></script>
+<script src="./js/game.js"></script>
+<script src="./js/main.js"></script>
+</body>
+</html>
