@@ -1,0 +1,11 @@
+{
+  "name": "Math Survivor",
+  "slug": "math-survivor",
+  "description": "Calculate. Shoot. Survive. Monsters carry math formulas — type the answer and the hero blasts them. Endless arcade survival, grade 1-6 curriculum.",
+  "stack": "vanilla",
+  "status": "live",
+  "created": "2026-10-05",
+  "build": "",
+  "dist": ".",
+  "thumb": "thumb.png"
+}

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Math Survivor — Calculate. Shoot. Survive.</title>
+  <link rel="stylesheet" href="./css/main.css">
+</head>
+<body data-screen="intro">
+  <div id="frame">
+    <canvas id="gl"></canvas>
+    <div id="labels"></div>
+
+    <!-- HUD -->
+    <header id="hud">
+      <div class="hud-row">
+        <div class="hud-score"><span>SCORE</span><b id="hudScore">0</b></div>
+        <div id="hudHearts" class="hud-hearts"></div>
+      </div>
+      <div class="hud-row hud-row2">
+        <div id="hudCombo" class="hud-combo"></div>
+        <div id="hudBest" class="hud-best">BEST 0</div>
+      </div>
+      <div id="hudBoss" class="hud-boss"></div>
+      <div id="hudStage" class="hud-stage"></div>
+      <button id="pauseBtn" class="icon-btn" aria-label="pause">&#10074;&#10074;</button>
+      <button id="soundBtn" class="icon-btn" aria-label="sound">&#128266;</button>
+    </header>
+
+    <div id="stageToast"></div>
+    <div id="pauseVeil"><div>PAUSED</div><small>tap the play button to resume</small></div>
+    <div id="tut">
+      <p>Each monster carries a math problem.</p>
+      <p>Calculate the answer.</p>
+      <p>Type it on the keypad.</p>
+      <p>Press <b>ENTER</b> to attack!</p>
+    </div>
+
+    <!-- calculator deck -->
+    <footer id="deck">
+      <div id="inputWrap"><div id="inputDisplay">&nbsp;</div></div>
+      <div id="keyRow0"></div>
+      <div id="keypad"></div>
+    </footer>
+
+    <!-- intro -->
+    <section id="intro" class="screen on">
+      <div class="intro-inner">
+        <h1>MATH<br>SURVIVOR</h1>
+        <p class="tag">Calculate. Shoot. Survive.</p>
+        <p class="pick">CHOOSE YOUR GRADE</p>
+        <div id="gradeGrid"></div>
+        <button id="playBtn">PLAY</button>
+        <p id="playedLine" class="played"></p>
+        <a class="operator" href="https://ponkcoding.com" target="_blank" rel="noopener">PonkCoding Arcade</a>
+      </div>
+    </section>
+
+    <!-- game over -->
+    <section id="over" class="screen">
+      <div class="over-inner">
+        <h2>GAME OVER</h2>
+        <div id="overNew" class="newbest">NEW HIGH SCORE!</div>
+        <div class="ov-score"><span>SCORE</span><b id="ovScore">0</b></div>
+        <div class="ov-grade" id="ovGrade">GRADE 2</div>
+        <div class="ov-grid">
+          <div><span>BEST</span><b id="ovBest">0</b></div>
+          <div><span>DEFEATED</span><b id="ovKills">0</b></div>
+          <div><span>ACCURACY</span><b id="ovAcc">0%</b></div>
+          <div><span>BEST COMBO</span><b id="ovCombo">×0</b></div>
+          <div><span>SURVIVED</span><b id="ovTime">0:00</b></div>
+        </div>
+        <button id="againBtn">PLAY AGAIN</button>
+        <button id="menuBtn" class="ghost">CHANGE GRADE</button>
+      </div>
+    </section>
+
+    <div id="debug"></div>
+  </div>
+
+  <script src="./js/question.js"></script>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
