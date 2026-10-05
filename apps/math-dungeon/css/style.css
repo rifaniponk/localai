@@ -9,6 +9,12 @@
 html,body{margin:0;height:100%;overflow:hidden;background:#070a12;color:var(--ink);font-family:var(--font-p)}
 #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 canvas#game{display:block;background:#0b0f1c}
+#rotateHint{display:none;position:absolute;inset:0;z-index:60;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(7,10,18,.92);color:#ffd35c;font-family:var(--font-p);text-align:center;padding:24px}
+#rotateHint .rot-icon{font-size:64px;animation:rotwob 2s ease-in-out infinite}
+#rotateHint b{font-family:var(--font-x);font-size:16px;letter-spacing:2px}
+#rotateHint span{color:#8fa0c8;font-size:15px}
+@keyframes rotwob{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}}
+@media (orientation:portrait){body.state-explore #rotateHint,body.state-paused #rotateHint{display:flex}}
 
 .hidden{display:none!important}
 

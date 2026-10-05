@@ -29,6 +29,7 @@ for (const slug of existsSync(appsDir) ? readdirSync(appsDir) : []) {
     if (!m[k]) errors.push(`apps/${slug}/app.json: missing field "${k}"`);
   }
   if (m.slug !== slug) errors.push(`apps/${slug}/app.json: slug "${m.slug}" != folder name "${slug}"`);
+  if (m.status === "draft") continue; // drafts stay unpublished on the landing page
   apps.push({ ...m, path: `/${m.slug}/` });
 }
 

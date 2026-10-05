@@ -39,12 +39,13 @@
     const w = window.innerWidth, h = window.innerHeight;
     Game.dpr = Math.min(2, window.devicePixelRatio || 1);
     Game.scale = Math.min(w / VIEW_W, h / VIEW_H);
-    const cw = Math.round(VIEW_W * Game.scale), ch = Math.round(VIEW_H * Game.scale);
-    Game.canvas.style.width = cw + 'px';
-    Game.canvas.style.height = ch + 'px';
-    Game.canvas.width = Math.round(cw * Game.dpr);
-    Game.canvas.height = Math.round(ch * Game.dpr);
-    Game.offX = (w - cw) / 2; Game.offY = (h - ch) / 2;
+    // canvas fills the whole window; letterbox offsets live INSIDE the canvas
+    Game.canvas.style.width = w + 'px';
+    Game.canvas.style.height = h + 'px';
+    Game.canvas.width = Math.round(w * Game.dpr);
+    Game.canvas.height = Math.round(h * Game.dpr);
+    Game.offX = (w - VIEW_W * Game.scale) / 2;
+    Game.offY = (h - VIEW_H * Game.scale) / 2;
   };
   Game.canvasToScreen = function (wx, wy) {
     const sx = (wx - Game.cam.x) * Game.scale + Game.offX;
@@ -142,6 +143,7 @@
   // ---------- state machine ----------
   Game.setState = function (s) {
     Game.state = s;
+    document.body.className = 'state-' + s;
     if (s === 'explore') { MD.Battle.end(); MD.UI.hud(true); MD.UI.screen(null); document.getElementById('battlePanel').classList.add('hidden'); }
     if (s === 'battle') { MD.UI.hud(true); }
     if (s === 'paused') MD.UI.screen('scrPause');
