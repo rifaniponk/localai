@@ -207,6 +207,10 @@ footer#dock {
   box-shadow: 0 -12px 30px rgba(0,0,0,.55);
 }
 footer .fine { color: var(--muted); font-family: var(--font-p); font-size: .5rem; letter-spacing: .08em; margin: 0; }
+footer .fine a.src { color: var(--cyan); text-decoration: none; transition: color .2s, text-shadow .2s; }
+footer .fine a.src:hover { color: var(--yellow); text-shadow: 0 0 10px rgba(255,210,63,.55); }
+footer .fine a.src .ext { color: var(--pink); }
+footer .fine a.src:hover .ext { animation: blink 1s steps(1) infinite; }
 
 .p1 {
   width: 34px; height: 34px; display: block;
