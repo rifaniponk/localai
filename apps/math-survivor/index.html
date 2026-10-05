@@ -23,12 +23,19 @@
       </div>
       <div id="hudBoss" class="hud-boss"></div>
       <div id="hudStage" class="hud-stage"></div>
-      <button id="pauseBtn" class="icon-btn" aria-label="pause">&#10074;&#10074;</button>
+      <button id="exitBtn" class="icon-btn" aria-label="exit">&#10005;</button>
       <button id="soundBtn" class="icon-btn" aria-label="sound">&#128266;</button>
     </header>
 
     <div id="stageToast"></div>
-    <div id="pauseVeil"><div>PAUSED</div><small>tap the play button to resume</small></div>
+    <div id="exitVeil">
+      <div class="exq">EXIT GAME?</div>
+      <small>Your run ends and progress is lost.</small>
+      <div class="exbtns">
+        <button id="exitYesBtn">EXIT</button>
+        <button id="exitNoBtn">KEEP PLAYING</button>
+      </div>
+    </div>
     <div id="tut">
       <p>Each monster carries a math problem.</p>
       <p>Calculate the answer.</p>

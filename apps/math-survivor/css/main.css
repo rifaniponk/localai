@@ -97,7 +97,7 @@ body {
   background: var(--panel); border: 1px solid #33406e; color: var(--ink);
   font-size: 15px; pointer-events: auto; cursor: pointer;
 }
-#pauseBtn { right: 14px; }
+#exitBtn { right: 14px; }
 #soundBtn { right: 58px; }
 
 #stageToast {
@@ -108,10 +108,13 @@ body {
 #stageToast.show { animation: toast 2.4s ease-out; }
 @keyframes toast { 0% { opacity: 0; transform: translateX(-50%) scale(0.7); } 15% { opacity: 1; transform: translateX(-50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
 
-#pauseVeil { position: absolute; inset: 0; background: rgba(6, 9, 20, 0.72); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 8px; z-index: 8; }
-#pauseVeil.on { display: flex; }
-#pauseVeil div { font-family: var(--font-x); font-size: 44px; letter-spacing: 0.3em; }
-#pauseVeil small { color: #8fa2d8; }
+#exitVeil { position: absolute; inset: 0; background: rgba(6, 9, 20, 0.78); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 10px; z-index: 9; }
+#exitVeil.on { display: flex; }
+#exitVeil .exq { font-family: var(--font-x); font-size: 40px; letter-spacing: 0.25em; color: var(--red); text-shadow: 0 0 18px rgba(255, 92, 110, 0.5); }
+#exitVeil small { color: #8fa2d8; }
+#exitVeil .exbtns { display: flex; gap: 12px; margin-top: 10px; }
+#exitYesBtn { font-family: var(--font-x); font-size: 22px; letter-spacing: 0.2em; padding: 8px 26px; border-radius: 12px; background: linear-gradient(180deg, #8a2a3a, #5a1a26); border: 2px solid var(--red); color: #ffeef0; cursor: pointer; }
+#exitNoBtn { font-family: var(--font-x); font-size: 22px; letter-spacing: 0.15em; padding: 8px 26px; border-radius: 12px; background: transparent; border: 2px solid var(--green); color: #d8ffe2; cursor: pointer; }
 
 #tut { position: absolute; top: 11%; left: 50%; transform: translateX(-50%); width: min(86%, 420px); background: var(--panel); border: 1px solid #3a4a80; border-radius: 14px; padding: 14px 18px; z-index: 7; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
 #tut.on { opacity: 1; }

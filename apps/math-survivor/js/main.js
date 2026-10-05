@@ -34,7 +34,9 @@ function renderGrades() {
 const hud = { score: $("#hudScore"), hearts: $("#hudHearts"), combo: $("#hudCombo"), best: $("#hudBest"), stage: $("#hudStage"), boss: $("#hudBoss") };
 function onHud(h) {
   hud.score.textContent = h.score.toLocaleString("en-US");
-  hud.best.textContent = "BEST " + Save.best(h.grade).toLocaleString("en-US");
+  const bestV = Save.best(h.grade);
+  hud.best.textContent = "BEST " + bestV.toLocaleString("en-US");
+  hud.best.style.display = bestV > 0 ? "" : "none";
   let hearts = "";
   for (let i = 0; i < h.maxHp; i++) hearts += "<span class='heart" + (i < h.hp ? "" : " lost") + "'>\u2764</span>";
   hud.hearts.innerHTML = hearts;
@@ -98,6 +100,7 @@ function buildKeypad() {
 }
 window.addEventListener("keydown", e => {
   if (body.dataset.screen !== "game") return;
+  if (e.key === "Escape") { if (engine.running) exitVeil.classList.toggle("on"); return; }
   if (e.key >= "0" && e.key <= "9") pressKey(e.key);
   else if (e.key === "Enter") pressKey("enter");
   else if (e.key === "Backspace") pressKey("back");
@@ -171,10 +174,14 @@ function startRun(grade) {
 $("#playBtn").addEventListener("click", () => { Audio.unlock(); startRun(Save.grade); });
 $("#againBtn").addEventListener("click", () => startRun(Save.grade));
 $("#menuBtn").addEventListener("click", () => { renderGrades(); show("intro"); });
-$("#pauseBtn").addEventListener("click", () => {
-  engine.paused = !engine.paused;
-  $("#pauseBtn").textContent = engine.paused ? "\u25B6" : "\u275A\u275A";
-  $("#pauseVeil").classList.toggle("on", engine.paused);
+const exitVeil = $("#exitVeil");
+$("#exitBtn").addEventListener("click", () => { if (engine.running) exitVeil.classList.add("on"); });
+$("#exitNoBtn").addEventListener("click", () => exitVeil.classList.remove("on"));
+$("#exitYesBtn").addEventListener("click", () => {
+  exitVeil.classList.remove("on");
+  engine.exitRun();
+  show("intro");
+  renderGrades();
 });
 $("#soundBtn").addEventListener("click", () => {
   const v = !Save.sound;

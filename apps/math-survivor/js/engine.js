@@ -61,7 +61,7 @@ export class Engine {
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, powerPreference: "high-performance" });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.Fog(0x101426, 14, 30);
+    this.scene.fog = new THREE.Fog(0x101426, 22, 52);
     this.camera = new THREE.PerspectiveCamera(55, 0.56, 0.1, 60);
     this.camBase = new THREE.Vector3(0, 8.4, 15.4);
     this.camLook = new THREE.Vector3(0, 0.6, -0.5);
@@ -194,6 +194,16 @@ export class Engine {
     // opening enemies
     for (let i = 0; i < 2; i++) this._spawnEnemy();
     this._pushHud();
+  }
+
+  exitRun() {
+    this.running = false;
+    this.gameOver = false;
+    this.heroAnim.dead = 0;
+    this.hero.rotation.x = 0;
+    for (const t of [...this.targets]) this._removeTarget(t, true);
+    for (const p of this.projs) this.scene.remove(p.mesh);
+    this.projs = [];
   }
 
   // ---------------- difficulty ----------------
@@ -664,6 +674,8 @@ export class Engine {
 
     // idle hero + environment animation (always alive)
     this.heroParts.orb.material.emissiveIntensity = 1.4 + Math.sin(t * 3) * 0.5;
+    if (this.heroParts.ring) this.heroParts.ring.rotation.z += dt * 1.6;
+    if (this.heroParts.beard) this.heroParts.beard.rotation.x = 0.3 + Math.sin(t * 2.2) * 0.05;
     this.rune.material.opacity = 0.35 + Math.sin(t * 1.4) * 0.12;
     this.rune.rotation.z = t * 0.15;
     for (const tl of this.torchLights) {
@@ -724,10 +736,15 @@ export class Engine {
         e.group.position.z += e.speed * speedMul * dt;
         e.bob += dt;
         if (e.type === "bat") { e.group.position.y = 0.55 + Math.sin(e.bob * 5) * 0.25; e.parts.wl.rotation.z = 1.25 + Math.sin(e.bob * 9) * 0.5; e.parts.wr.rotation.z = -1.25 - Math.sin(e.bob * 9) * 0.5; }
-        else if (e.type === "ghost") { e.group.position.y = 0.35 + Math.sin(e.bob * 2.4) * 0.3; e.fadeT += dt; const o = 0.55 + Math.sin(e.fadeT * 1.1) * 0.3; e.parts.body.material.opacity = o; e.parts.tail.material.opacity = o * 0.75; }
-        else if (e.type === "slime") { const sq = 1 + Math.sin(e.bob * 4) * 0.12; e.parts.body.scale.set(1 + (1 - sq) * 0.5, 0.78 * sq, 1 + (1 - sq) * 0.5); }
+        else if (e.type === "ghost") { e.group.position.y = 0.35 + Math.sin(e.bob * 2.4) * 0.3; e.fadeT += dt; const o = 0.55 + Math.sin(e.fadeT * 1.1) * 0.3; e.parts.body.material.opacity = o; e.parts.tail.material.opacity = o * 0.75; if (e.parts.al) { e.parts.al.rotation.z = 0.8 + Math.sin(e.bob * 2.4) * 0.25; e.parts.ar.rotation.z = -0.8 - Math.sin(e.bob * 2.4) * 0.25; } }
+        else if (e.type === "slime") {
+          const sq = 1 + Math.sin(e.bob * 4) * 0.12;
+          e.parts.body.scale.set(1 + (1 - sq) * 0.5, 0.78 * sq, 1 + (1 - sq) * 0.5);
+          if (e.parts.mouth) e.parts.mouth.scale.x = 1.3 + Math.sin(e.bob * 4) * 0.3;
+          if (e.parts.al) { e.parts.al.rotation.z = 0.9 + Math.sin(e.bob * 3) * 0.3; e.parts.ar.rotation.z = -0.9 - Math.sin(e.bob * 3) * 0.3; }
+        }
         else if (e.type === "skeleton") { e.parts.al.rotation.z = 0.35 + Math.sin(e.bob * 4) * 0.25; e.parts.ar.rotation.z = -0.35 - Math.sin(e.bob * 4) * 0.25; }
-        else if (e.type === "golem") { e.group.position.x += Math.sin(e.bob * 0.8) * dt * 0.3; }
+        else if (e.type === "golem") { e.group.position.x += Math.sin(e.bob * 0.8) * dt * 0.3; if (e.parts.crystal) e.parts.crystal.material.emissiveIntensity = 1.2 + Math.sin(e.bob * 3) * 0.6; if (e.parts.fl) { e.parts.fl.rotation.x = Math.sin(e.bob * 1.6) * 0.25; e.parts.fr.rotation.x = -Math.sin(e.bob * 1.6) * 0.25; } }
         else if (e.kind === "boss") { e.parts.wl.rotation.z = 1.15 + Math.sin(e.bob * 2.2) * 0.35; e.parts.wr.rotation.z = -1.15 - Math.sin(e.bob * 2.2) * 0.35; e.parts.core.material.emissiveIntensity = 1.4 + Math.sin(e.bob * 4) * 0.6; }
         if (e.kind === "powerup") { e.parts.crystal.rotation.y += dt * 2; e.parts.halo.rotation.z += dt * 1.5; if (e.ttl < 4) e.group.visible = Math.sin(e.ttl * 12) > -0.3; }
         if (e.kind !== "powerup" && e.group.position.z >= HIT_Z) { this._enemyReaches(e); continue; }
