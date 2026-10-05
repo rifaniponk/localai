@@ -1,10 +1,11 @@
 {
-  "name": "iq-test",
+  "name": "IQ TEST",
   "slug": "iq-test",
-  "description": "TODO: satu baris deskripsi",
+  "description": "A real adaptive IQ test: Raven-style matrices, series, spatial, verbal and logic — scored on a true IQ scale in 10 minutes.",
   "stack": "vanilla",
-  "status": "draft",
+  "status": "live",
   "created": "2026-10-05",
   "build": "",
-  "dist": "."
+  "dist": ".",
+  "thumb": "thumb.png"
 }
