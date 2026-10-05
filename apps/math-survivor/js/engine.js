@@ -38,6 +38,9 @@ export class Engine {
     this.onFeedback = opts.onFeedback; // "correct" | "wrong"
     this.onGameOver = opts.onGameOver; // (stats) => void
     this.onStage = opts.onStage;     // (stageName) => void
+    this.onStageFlash = opts.onStageFlash; // (stageName) => void (transition banner)
+    this.onBossIn = opts.onBossIn;   // () => void (arrival banner)
+    this.onDanger = opts.onDanger;   // (bool) => void (vignette)
     this.debug = /[?&]debug=true/.test(location.search);
 
     this.running = false;
@@ -60,18 +63,22 @@ export class Engine {
   _initScene() {
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, powerPreference: "high-performance" });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.12;
+    this._qTier = 0; // auto quality reduction for weak devices
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.Fog(0x101426, 22, 52);
     this.camera = new THREE.PerspectiveCamera(55, 0.56, 0.1, 60);
     this.camBase = new THREE.Vector3(0, 8.4, 15.4);
     this.camLook = new THREE.Vector3(0, 0.6, -0.5);
 
-    this.amb = new THREE.AmbientLight(0x30364f, 2.4);
-    this.key = new THREE.DirectionalLight(0x8fa8ff, 3.0);
+    this.amb = new THREE.AmbientLight(0x30364f, 1.5);
+    this.hemi = new THREE.HemisphereLight(0x5a6a9a, 0x14182a, 1.1);
+    this.key = new THREE.DirectionalLight(0x8fa8ff, 2.6);
     this.key.position.set(3, 10, 6);
     this.rim = new THREE.PointLight(0x5a7bff, 1.6, 26);
     this.rim.position.set(0, 4, -10);
-    this.scene.add(this.amb, this.key, this.rim);
+    this.scene.add(this.amb, this.hemi, this.key, this.rim);
 
     this.floorMat = new THREE.MeshStandardMaterial({ map: AF.floorTex("#2a2f45", "#3d4463"), roughness: 0.95 });
     this.floor = new THREE.Mesh(new THREE.PlaneGeometry(13, 24), this.floorMat);
@@ -85,20 +92,9 @@ export class Engine {
     this.rune.position.set(0, 0.03, HERO_Z);
     this.scene.add(this.rune);
 
-    // side pillars + torches for depth
+    // biome diorama (walls, gate, portal, props) — rebuilt per stage with full disposal
+    this.biome = null;
     this.torchLights = [];
-    for (let i = 0; i < 4; i++) {
-      const side = i % 2 === 0 ? -1 : 1;
-      const z = -8 + i * 4.5;
-      const p = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.42, 3.4, 8), new THREE.MeshStandardMaterial({ color: 0x4a4f66, roughness: 0.9 }));
-      p.position.set(side * 6.4, 1.7, z);
-      const flame = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), new THREE.MeshStandardMaterial({ color: 0xffb05c, emissive: 0xff7a2a, emissiveIntensity: 1.8 }));
-      flame.position.set(side * 6.4, 3.6, z);
-      const tl = new THREE.PointLight(0xff8a3c, 0.9, 8);
-      tl.position.copy(flame.position);
-      this.scene.add(p, flame, tl);
-      this.torchLights.push({ flame, light: tl, phase: i * 1.7 });
-    }
 
     // floating dust motes
     const dustGeo = new THREE.BufferGeometry();
@@ -325,6 +321,12 @@ export class Engine {
     if (elite) {
       t.group.scale.setScalar(1.22);
       t.group.traverse(o => { if (o.material && o.material.emissive) { o.material.emissive.setHex(0xff3c6e); o.material.emissiveIntensity = Math.max(o.material.emissiveIntensity || 0, 0.5); } });
+      // crown deco at head height so elites read instantly on phones
+      const headY = { slime: 1.05, bat: 1.62, skeleton: 1.92, ghost: 1.72, golem: 1.95 }[type] || 1.6;
+      const crown = AF.eliteDeco(0xff3c6e);
+      crown.position.y = headY;
+      t.group.add(crown);
+      t.crown = crown;
     }
     this._register(t);
   }
@@ -361,6 +363,11 @@ export class Engine {
     this.bossHpEl = null;
     Audio.cues.bossIn();
     this.shake = 1;
+    // boss arrival presentation: triple shockwave + burst at the gate
+    this._wave(0, SPAWN_Z, 0xffd35c);
+    this._wave(0, SPAWN_Z, 0xff5ce0);
+    this.burst(0, 2.2, SPAWN_Z, 0xffd35c, 50, 5);
+    if (this.onBossIn) this.onBossIn();
     this._pushHud();
   }
 
@@ -446,6 +453,7 @@ export class Engine {
   }
 
   _hitTarget(t) {
+    this.hitStop = 0.07; // brief freeze-frame on impact (game-feel juice)
     if (t.kind === "powerup") {
       this._activatePowerup(t);
       this._removeTarget(t);
@@ -627,22 +635,46 @@ export class Engine {
   }
 
   // ---------------- stage progression ----------------
+  _swapBiome(i) {
+    if (this.biome) {
+      this.scene.remove(this.biome.group);
+      AF.disposeBiome(this.biome);
+      this.biome = null;
+    }
+    this.biome = AF.buildBiome(i);
+    this.scene.add(this.biome.group);
+    this.torchLights = this.biome.torchLights;
+  }
+  _swapFloorTex(s) {
+    const old = this.floorMat.map;
+    this.floorMat.map = AF.floorTex(s.floor, s.floorLine);
+    this.floorMat.needsUpdate = true;
+    if (old) old.dispose(); // no texture leak across stages
+  }
   _applyStage(i, instant) {
     const s = STAGES[i];
     this.stageIdx = i;
-    const set = (obj, prop, hex) => { obj[prop].setHex(hex); };
     if (instant) {
       this.scene.fog.color.setHex(s.fog);
       this.renderer.setClearColor(s.fog);
       this.amb.color.setHex(s.amb);
+      this.hemi.color.setHex(s.key);
       this.key.color.setHex(s.key);
       this.rim.color.setHex(s.accent);
-      this.floorMat.map = AF.floorTex(s.floor, s.floorLine);
-      this.floorMat.needsUpdate = true;
+      this._swapFloorTex(s);
+      this._swapBiome(i);
     } else {
-      this.stageLerp = { from: { fog: this.scene.fog.color.clone(), amb: this.amb.color.clone(), key: this.key.color.clone(), rim: this.rim.color.clone() }, to: i, t: 0 };
+      this.stageLerp = { from: { fog: this.scene.fog.color.clone(), amb: this.amb.color.clone(), key: this.key.color.clone(), rim: this.rim.color.clone(), hemi: this.hemi.color.clone() }, to: i, t: 0 };
+      this._flashTransition();
     }
     this.onStage && this.onStage(s.name);
+  }
+  _flashTransition() {
+    // brief white-cyan flash + shockwave to present the stage change
+    this._wave(0, 0, 0xbfe0ff);
+    this._wave(0, 0, 0x7ec8ff);
+    this.shake = Math.max(this.shake, 0.5);
+    if (this.onStageFlash) this.onStageFlash(STAGES[this.stageLerp ? this.stageLerp.to : this.stageIdx].name);
   }
 
   _updateStageLerp(dt) {
@@ -653,11 +685,12 @@ export class Engine {
     this.scene.fog.color.copy(L.from.fog).lerp(new THREE.Color(s.fog), k);
     this.renderer.setClearColor(this.scene.fog.color);
     this.amb.color.copy(L.from.amb).lerp(new THREE.Color(s.amb), k);
+    this.hemi.color.copy(L.from.hemi).lerp(new THREE.Color(s.key), k);
     this.key.color.copy(L.from.key).lerp(new THREE.Color(s.key), k);
     this.rim.color.copy(L.from.rim).lerp(new THREE.Color(s.accent), k);
     if (L.t >= 1) {
-      this.floorMat.map = AF.floorTex(s.floor, s.floorLine);
-      this.floorMat.needsUpdate = true;
+      this._swapFloorTex(s);
+      this._swapBiome(L.to);
       this.stageLerp = null;
     }
   }
@@ -682,6 +715,17 @@ export class Engine {
     this._fps = (this._fps || 60) * 0.95 + (dt > 0 ? 1000 / (dt * 1000) : 60) * 0.05;
     if (dt > 0.1) dt = 0.1; // tab switch guard
     if (this.paused) { this.renderer.render(this.scene, this.camera); return; }
+
+    // hit-stop: freeze-frame briefly after impacts (clamped, never stalls labels)
+    let wdt = dt;
+    if (this.hitStop > 0) { this.hitStop -= dt; wdt = dt * 0.12; }
+
+    // auto quality reduction for weak devices: drop pixel ratio once if fps stays low
+    if (this._qTier === 0 && this._fps && this._fps < 34 && this.time > 6) {
+      this._qTier = 1;
+      this.renderer.setPixelRatio(1);
+      this._resize();
+    }
 
     const t = now / 1000;
 
@@ -714,11 +758,29 @@ export class Engine {
     this.heroAura.material.opacity = auraOn ? 0.5 + Math.sin(t * 5) * 0.2 : 0;
     this.heroAura.scale.setScalar(1 + (this.combo >= 20 ? 0.35 : 0));
 
+    // biome ambient motion (arcane rings/crystals) + elite crown spin
+    if (this.biome) {
+      const ud = this.biome.group.userData;
+      if (ud.floaters) for (let k = 0; k < ud.floaters.length; k++) {
+        ud.floaters[k].position.y += Math.sin(t * 1.5 + k * 2) * dt * 0.3;
+        ud.floaters[k].rotation.y += dt * 0.8;
+      }
+      if (ud.rings) for (let k = 0; k < ud.rings.length; k++) ud.rings[k].rotation.z += dt * (0.3 + k * 0.15);
+    }
+    for (const e of this.targets) if (e.crown) e.crown.rotation.y += dt * 1.2;
+
+    // danger vignette feedback when enemies close in (DOM, throttled)
+    if (this.onDanger && this.running) {
+      let near = false;
+      for (const e of this.targets) if (e.kind === "enemy" && e.group.position.z > 3.0) { near = true; break; }
+      if (near !== this._dangerOn) { this._dangerOn = near; this.onDanger(near); }
+    }
+
     if (this.running) {
-      this.time += dt;
-      if (this.freezeT > 0) this.freezeT -= dt;
-      if (this.slowT > 0) this.slowT -= dt;
-      if (this.breather > 0) this.breather -= dt;
+      this.time += wdt;
+      if (this.freezeT > 0) this.freezeT -= wdt;
+      if (this.slowT > 0) this.slowT -= wdt;
+      if (this.breather > 0) this.breather -= wdt;
 
       // stage progression every 100s
       const wantStage = Math.min(STAGES.length - 1, Math.floor(this.time / 100));
@@ -726,15 +788,15 @@ export class Engine {
 
       // spawning
       if (this.breather <= 0) {
-        this.spawnTimer -= dt;
+        this.spawnTimer -= wdt;
         if (this.spawnTimer <= 0) {
           this.spawnTimer = this._spawnInterval();
           this._spawnEnemy();
         }
       }
-      this.powerTimer -= dt;
+      this.powerTimer -= wdt;
       if (this.powerTimer <= 0) { this.powerTimer = 26 + Math.random() * 14; this._spawnPowerup(); }
-      this.bossTimer -= dt;
+      this.bossTimer -= wdt;
       if (this.bossTimer <= 0 && !this.boss) { this.bossTimer = 130 + Math.random() * 30; this._spawnBoss(); }
 
       // enemies move
@@ -743,11 +805,11 @@ export class Engine {
         const e = this.targets[i];
         if (e.dying) continue;
         if (e.kind === "powerup") {
-          e.ttl -= dt;
+          e.ttl -= wdt;
           if (e.ttl <= 0) { this._removeTarget(e); continue; }
         }
-        e.group.position.z += e.speed * speedMul * dt;
-        e.bob += dt;
+        e.group.position.z += e.speed * speedMul * wdt;
+        e.bob += wdt;
         if (e.type === "bat") { e.group.position.y = 0.55 + Math.sin(e.bob * 5) * 0.25; e.parts.wl.rotation.z = 1.25 + Math.sin(e.bob * 9) * 0.5; e.parts.wr.rotation.z = -1.25 - Math.sin(e.bob * 9) * 0.5; }
         else if (e.type === "ghost") { e.group.position.y = 0.35 + Math.sin(e.bob * 2.4) * 0.3; e.fadeT += dt; const o = 0.55 + Math.sin(e.fadeT * 1.1) * 0.3; e.parts.body.material.opacity = o; e.parts.tail.material.opacity = o * 0.75; if (e.parts.al) { e.parts.al.rotation.z = 0.8 + Math.sin(e.bob * 2.4) * 0.25; e.parts.ar.rotation.z = -0.8 - Math.sin(e.bob * 2.4) * 0.25; } }
         else if (e.type === "slime") {
@@ -759,11 +821,11 @@ export class Engine {
         else if (e.type === "skeleton") { e.parts.al.rotation.z = 0.35 + Math.sin(e.bob * 4) * 0.25; e.parts.ar.rotation.z = -0.35 - Math.sin(e.bob * 4) * 0.25; }
         else if (e.type === "golem") { e.group.position.x += Math.sin(e.bob * 0.8) * dt * 0.3; if (e.parts.crystal) e.parts.crystal.material.emissiveIntensity = 1.2 + Math.sin(e.bob * 3) * 0.6; if (e.parts.fl) { e.parts.fl.rotation.x = Math.sin(e.bob * 1.6) * 0.25; e.parts.fr.rotation.x = -Math.sin(e.bob * 1.6) * 0.25; } }
         else if (e.kind === "boss") { e.parts.wl.rotation.z = 1.15 + Math.sin(e.bob * 2.2) * 0.35; e.parts.wr.rotation.z = -1.15 - Math.sin(e.bob * 2.2) * 0.35; e.parts.core.material.emissiveIntensity = 1.4 + Math.sin(e.bob * 4) * 0.6; }
-        if (e.kind === "powerup") { e.parts.crystal.rotation.y += dt * 2; e.parts.halo.rotation.z += dt * 1.5; if (e.ttl < 4) e.group.visible = Math.sin(e.ttl * 12) > -0.3; }
+        if (e.kind === "powerup") { e.parts.crystal.rotation.y += wdt * 2; e.parts.halo.rotation.z += wdt * 1.5; if (e.ttl < 4) e.group.visible = Math.sin(e.ttl * 12) > -0.3; }
         if (e.kind !== "powerup" && e.group.position.z >= HIT_Z) { this._enemyReaches(e); continue; }
       }
 
-      this._updateProjectiles(dt);
+      this._updateProjectiles(wdt);
     }
 
     // death squash animations

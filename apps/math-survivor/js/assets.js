@@ -53,6 +53,201 @@ export const AF = {
     return new THREE.CanvasTexture(c);
   },
 
+  portalTex(inner) {
+    const c = document.createElement("canvas"); c.width = c.height = 256;
+    const x = c.getContext("2d");
+    const g = x.createRadialGradient(128, 128, 8, 128, 128, 124);
+    g.addColorStop(0, "rgba(255,255,255,0.95)");
+    g.addColorStop(0.35, inner);
+    g.addColorStop(0.75, inner.replace(/[\d.]+\)$/, "0.25)"));
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+    x.strokeStyle = "rgba(255,255,255,0.3)"; x.lineWidth = 3;
+    for (let i = 0; i < 5; i++) {
+      x.beginPath();
+      x.arc(128, 128, 30 + i * 18, i * 1.3, i * 1.3 + 2.2);
+      x.stroke();
+    }
+    return new THREE.CanvasTexture(c);
+  },
+
+  // ---------- biome diorama ----------
+  BIOME_PALS: [
+    { stone: 0x4a4f66, stoneDark: 0x232838, deco: 0x6a7088, glow: 0x6f8cff, flame: 0xff8a3c, portal: "rgba(120,150,255,0.85)" },
+    { stone: 0x3a3f58, stoneDark: 0x1b2033, deco: 0x7a5cc9, glow: 0x9a5cff, flame: 0x8a6cff, portal: "rgba(154,92,255,0.85)" },
+    { stone: 0x4a3040, stoneDark: 0x231319, deco: 0x8a4a3a, glow: 0xff5a2a, flame: 0xff5a2a, portal: "rgba(255,90,42,0.85)" },
+    { stone: 0x3d4f6e, stoneDark: 0x1d2940, deco: 0x5a7a9a, glow: 0x2fb8ff, flame: 0x7ad8ff, portal: "rgba(47,184,255,0.85)" },
+    { stone: 0x443a66, stoneDark: 0x211b38, deco: 0x8a6ab8, glow: 0xc9a2ff, flame: 0xff5ce0, portal: "rgba(201,162,255,0.85)" }
+  ],
+  buildBiome(i) {
+    const P = AF.BIOME_PALS[i % AF.BIOME_PALS.length];
+    const g = new THREE.Group();
+    const torchLights = [];
+    const stone = new THREE.MeshStandardMaterial({ color: P.stone, roughness: 0.95 });
+    const dark = new THREE.MeshStandardMaterial({ color: P.stoneDark, roughness: 1 });
+    const deco = new THREE.MeshStandardMaterial({ color: P.deco, roughness: 0.6, metalness: 0.2 });
+    const glow = new THREE.MeshStandardMaterial({ color: P.glow, emissive: P.glow, emissiveIntensity: 1.4, roughness: 0.4 });
+    const flameM = new THREE.MeshStandardMaterial({ color: 0xffc05c, emissive: P.flame, emissiveIntensity: 2.2 });
+    const box = (w, h, d, m) => new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
+
+    // side walls + cliff silhouettes for framing depth
+    for (const sx of [-1, 1]) {
+      const wall = box(1.4, 5.2, 26, stone); wall.position.set(sx * 7.3, 2.6, -1); g.add(wall);
+      const ledge = box(0.7, 0.5, 26, dark); ledge.position.set(sx * 6.45, 5.2, -1); g.add(ledge);
+      const cliff = box(3.2, 9, 30, dark); cliff.position.set(sx * 9.6, 4.2, -2); g.add(cliff);
+    }
+    // back wall with gate opening
+    const bwL = box(4.6, 7, 1.4, stone); bwL.position.set(-5.1, 3.5, -11.6); g.add(bwL);
+    const bwR = box(4.6, 7, 1.4, stone); bwR.position.set(5.1, 3.5, -11.6); g.add(bwR);
+    const bwTop = box(14.4, 2.4, 1.4, stone); bwTop.position.set(0, 8.2, -11.6); g.add(bwTop);
+    // archway pillars + keystone
+    for (const sx of [-1, 1]) {
+      const ap = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 6.4, 10), deco);
+      ap.position.set(sx * 2.9, 3.2, -11.4); g.add(ap);
+    }
+    const keyStone = box(1.2, 1.0, 1.6, deco); keyStone.position.set(0, 6.8, -11.4); g.add(keyStone);
+    // spawn portal behind the gate
+    const portal = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 6.4),
+      new THREE.MeshBasicMaterial({ map: AF.portalTex(P.portal), transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending }));
+    portal.position.set(0, 3.0, -11.9); g.add(portal);
+    // far background silhouettes (fog does the depth work)
+    for (let k = 0; k < 5; k++) {
+      const h = 5 + (k % 3) * 3;
+      const b = box(6, h, 2, dark);
+      b.position.set(-10 + k * 5, h / 2 - 0.5, -17 - (k % 2) * 3);
+      b.rotation.y = (k - 2) * 0.12;
+      g.add(b);
+    }
+    // soft lane guide strips
+    const laneTex = AF.glowTex("rgba(160,190,255,0.5)", "rgba(120,150,255,0.15)");
+    for (const lx of [-6, -3.6, -1.2, 1.2, 3.6, 6]) {
+      const s = new THREE.Mesh(new THREE.PlaneGeometry(0.12, 21),
+        new THREE.MeshBasicMaterial({ map: laneTex, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending }));
+      s.rotation.x = -Math.PI / 2; s.position.set(lx, 0.015, -1); g.add(s);
+    }
+    // hero hex platform + glowing rim
+    const plat = new THREE.Mesh(new THREE.CylinderGeometry(1.75, 1.95, 0.16, 6), deco);
+    plat.position.set(0, 0.08, 5.2); g.add(plat);
+    const platRim = new THREE.Mesh(new THREE.TorusGeometry(1.8, 0.05, 8, 6), glow);
+    platRim.rotation.x = Math.PI / 2; platRim.rotation.z = Math.PI / 6;
+    platRim.position.set(0, 0.17, 5.2); g.add(platRim);
+
+    const brazier = (x, z, tall) => {
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.13, tall, 6), deco);
+      pole.position.set(x, tall / 2, z); g.add(pole);
+      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.18, 0.3, 8), deco);
+      bowl.position.set(x, tall + 0.1, z); g.add(bowl);
+      const flame = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 8), flameM);
+      flame.position.set(x, tall + 0.34, z); flame.scale.y = 1.3; g.add(flame);
+      const light = new THREE.PointLight(P.flame, 1.1, 9);
+      light.position.set(x, tall + 0.5, z); g.add(light);
+      torchLights.push({ flame, light, phase: Math.random() * 6.28 });
+    };
+
+    if (i % 5 === 0) { // Ancient Ruins: broken pillars, rubble, braziers
+      const pillar = (x, z, h, broken) => {
+        const p = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, h, 9), stone);
+        p.position.set(x, h / 2, z); g.add(p);
+        if (broken) {
+          const ch = box(0.9, 0.25, 0.9, stone); ch.position.set(x + 0.3, 0.12, z + 0.5); ch.rotation.y = 0.7; g.add(ch);
+        } else {
+          const cap = box(1.1, 0.3, 1.1, deco); cap.position.set(x, h + 0.15, z); g.add(cap);
+        }
+      };
+      pillar(-6.3, -6.5, 3.6, false); pillar(6.3, -2.5, 2.4, true);
+      pillar(-6.3, 1.5, 2.8, true); pillar(6.3, 4.5, 3.4, false);
+      for (let k = 0; k < 6; k++) {
+        const r = box(0.5 + Math.random() * 0.5, 0.3 + Math.random() * 0.3, 0.5, stone);
+        r.position.set((k % 2 ? 1 : -1) * (5.6 + Math.random()), 0.2, -8 + k * 3);
+        r.rotation.y = Math.random() * 3; g.add(r);
+      }
+      brazier(-6.2, -9, 1.5); brazier(6.2, -9, 1.5);
+    } else if (i % 5 === 1) { // Dark Cavern: stalactites + glowing crystal clusters
+      for (let k = 0; k < 7; k++) {
+        const len = 1.2 + Math.random() * 1.6;
+        const st = new THREE.Mesh(new THREE.ConeGeometry(0.3 + Math.random() * 0.2, len, 7), stone);
+        st.position.set(-6 + k * 2 + (Math.random() - 0.5), 5.4 - len / 2, -10 + Math.random() * 14);
+        st.rotation.x = Math.PI; g.add(st);
+      }
+      const cluster = (x, z, s) => {
+        for (let k = 0; k < 3; k++) {
+          const cr = new THREE.Mesh(new THREE.OctahedronGeometry(0.3 * s * (0.7 + Math.random() * 0.6)), glow);
+          cr.position.set(x + (Math.random() - 0.5) * 0.8, 0.3 * s, z + (Math.random() - 0.5) * 0.8);
+          cr.rotation.set(Math.random(), Math.random(), Math.random()); g.add(cr);
+        }
+      };
+      cluster(-6.4, -7, 1.2); cluster(6.4, -3, 1); cluster(-6.5, 3, 0.9); cluster(6.3, 5, 1.1);
+      brazier(-6.2, -9.5, 1.2); brazier(6.2, -9.5, 1.2);
+    } else if (i % 5 === 2) { // Lava Depths: obsidian spikes + glowing floor cracks
+      const spike = (x, z, h) => {
+        const s = new THREE.Mesh(new THREE.ConeGeometry(0.35, h, 5), dark);
+        s.position.set(x, h / 2, z); s.rotation.y = Math.random() * 3; g.add(s);
+      };
+      spike(-6.4, -7, 2.6); spike(6.4, -4, 3.2); spike(-6.3, 2, 2.2); spike(6.5, 5.5, 2.8);
+      const crackM = new THREE.MeshBasicMaterial({ color: 0xff6a2a, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false });
+      for (let k = 0; k < 5; k++) {
+        const c = new THREE.Mesh(new THREE.PlaneGeometry(0.5 + Math.random() * 0.4, 3 + Math.random() * 3), crackM);
+        c.rotation.x = -Math.PI / 2; c.rotation.z = Math.random() * 0.6 - 0.3;
+        c.position.set((k % 2 ? 1 : -1) * (5.4 + Math.random() * 0.8), 0.02, -8 + k * 3.5);
+        g.add(c);
+      }
+      brazier(-6.2, -9, 1.4); brazier(6.2, -9, 1.4); brazier(-6.4, 4, 1.2); brazier(6.4, 4, 1.2);
+    } else if (i % 5 === 3) { // Frozen Depths: ice shards + frost pillars
+      const iceM = new THREE.MeshStandardMaterial({ color: 0xbfe8ff, emissive: 0x2fb8ff, emissiveIntensity: 0.5, roughness: 0.15, transparent: true, opacity: 0.85 });
+      const shard = (x, z, h, tilt) => {
+        const s = new THREE.Mesh(new THREE.ConeGeometry(0.3, h, 5), iceM);
+        s.position.set(x, h / 2, z); s.rotation.z = tilt; g.add(s);
+      };
+      shard(-6.4, -7.5, 2.8, 0.15); shard(6.4, -5, 3.4, -0.12); shard(-6.3, 1, 2.2, 0.2); shard(6.4, 4.5, 2.6, -0.18);
+      shard(-5.6, -10.5, 1.6, 0.3); shard(5.6, -10.5, 1.8, -0.3);
+      for (const sx of [-1, 1]) {
+        const fp = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 4.2, 7), stone);
+        fp.position.set(sx * 6.6, 2.1, -3 + sx); g.add(fp);
+      }
+      brazier(-6.2, -9, 1.5); brazier(6.2, -9, 1.5);
+    } else { // Arcane Realm: floating rune rings + orbiting crystals
+      const rings = [], floaters = [];
+      for (let k = 0; k < 3; k++) {
+        const r = new THREE.Mesh(new THREE.TorusGeometry(0.9 + k * 0.5, 0.05, 8, 28), glow);
+        r.position.set(0, 3.4 + k * 0.5, -11.2);
+        r.rotation.x = 1.2 + k * 0.3;
+        g.add(r); rings.push(r);
+      }
+      for (let k = 0; k < 6; k++) {
+        const c = new THREE.Mesh(new THREE.OctahedronGeometry(0.28), glow);
+        c.position.set((k % 2 ? 1 : -1) * (5.8 + Math.random()), 2.4 + Math.random() * 2, -9 + k * 2.6);
+        g.add(c); floaters.push(c);
+      }
+      g.userData.floaters = floaters; g.userData.rings = rings;
+      brazier(-6.2, -9.5, 1.3); brazier(6.2, -9.5, 1.3);
+    }
+    return { group: g, torchLights };
+  },
+  disposeBiome(b) {
+    b.group.traverse(o => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); }
+    });
+  },
+  // magenta crown + gem: elites readable without relying on the label
+  eliteDeco(color) {
+    const g = new THREE.Group();
+    const m = new THREE.MeshStandardMaterial({ color: 0xffd35c, emissive: color, emissiveIntensity: 1.6, roughness: 0.35, metalness: 0.4 });
+    const band = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 8, 16), m);
+    band.rotation.x = Math.PI / 2; g.add(band);
+    const spikeGeo = new THREE.ConeGeometry(0.07, 0.26, 6);
+    for (let k = 0; k < 4; k++) {
+      const a = (k / 4) * Math.PI * 2 + Math.PI / 4;
+      const sp = new THREE.Mesh(spikeGeo, m);
+      sp.position.set(Math.cos(a) * 0.24, 0.14, Math.sin(a) * 0.24);
+      sp.rotation.z = -Math.cos(a) * 0.4; sp.rotation.x = Math.sin(a) * 0.4;
+      g.add(sp);
+    }
+    const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.09), m);
+    gem.position.y = 0.26; g.add(gem);
+    return g;
+  },
+
   // ---------- shared bits ----------
   eyes(mat, dx, y, z, r) {
     const g = new THREE.Group();
@@ -376,13 +571,58 @@ export const AF = {
       lightning: { color: 0xffe25c, emissive: 0xffc81a }
     }[type] || { color: 0xffffff, emissive: 0xaaaaaa };
     const g = new THREE.Group();
-    const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.42), new THREE.MeshStandardMaterial({ color: conf.color, emissive: conf.emissive, emissiveIntensity: 1.2, roughness: 0.2, metalness: 0.2 }));
-    crystal.position.y = 1.0;
-    const halo = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.045, 8, 24), new THREE.MeshStandardMaterial({ color: conf.color, emissive: conf.emissive, emissiveIntensity: 1.0 }));
+    const m = new THREE.MeshStandardMaterial({ color: conf.color, emissive: conf.emissive, emissiveIntensity: 1.2, roughness: 0.2, metalness: 0.2 });
+    let icon;
+    if (type === "freeze") { // snowflake: 6 spokes + ring
+      icon = new THREE.Group();
+      const spoke = new THREE.CylinderGeometry(0.045, 0.045, 0.85, 6);
+      for (let k = 0; k < 3; k++) {
+        const s = new THREE.Mesh(spoke, m);
+        s.rotation.z = (k / 3) * Math.PI;
+        icon.add(s);
+      }
+      const fr = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 8, 18), m);
+      icon.add(fr);
+    } else if (type === "bomb") { // round bomb + fuse spark
+      icon = new THREE.Group();
+      const ball = new THREE.Mesh(new THREE.SphereGeometry(0.4, 14, 12), m);
+      icon.add(ball);
+      const fuse = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.3, 6), m);
+      fuse.position.set(0.12, 0.5, 0); fuse.rotation.z = -0.5;
+      const spark = new THREE.Mesh(new THREE.OctahedronGeometry(0.1), m);
+      spark.position.set(0.26, 0.68, 0);
+      icon.add(fuse, spark);
+    } else if (type === "shield") { // shield plate + boss ridge
+      icon = new THREE.Group();
+      const plate = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.34, 0.14, 6), m);
+      plate.rotation.x = Math.PI / 2; plate.rotation.z = Math.PI / 6;
+      const ridge = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.5, 4, 8), m);
+      icon.add(plate, ridge);
+    } else if (type === "slow") { // hourglass: two cones + post
+      icon = new THREE.Group();
+      const top = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.42, 8), m);
+      top.position.y = 0.24; top.rotation.x = Math.PI;
+      const bot = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.42, 8), m);
+      bot.position.y = -0.24;
+      icon.add(top, bot);
+    } else if (type === "lightning") { // zigzag bolt from stacked boxes
+      icon = new THREE.Group();
+      const b1 = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.3, 0.12), m);
+      b1.position.set(0.1, 0.28, 0); b1.rotation.z = 0.5;
+      const b2 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.26, 0.12), m);
+      b2.position.set(-0.02, 0, 0); b2.rotation.z = -0.6;
+      const b3 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.24, 0.12), m);
+      b3.position.set(0.12, -0.3, 0); b3.rotation.z = 0.4;
+      icon.add(b1, b2, b3);
+    } else {
+      icon = new THREE.Mesh(new THREE.OctahedronGeometry(0.42), m);
+    }
+    icon.position.y = 1.0;
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.045, 8, 24), m);
     halo.rotation.x = Math.PI / 2; halo.position.y = 1.0;
     const light = new THREE.PointLight(conf.emissive, 1.1, 4);
     light.position.y = 1.0;
-    g.add(crystal, halo, light, AF.blobShadow());
-    return { group: g, parts: { crystal, halo } };
+    g.add(icon, halo, light, AF.blobShadow());
+    return { group: g, parts: { crystal: icon, halo } };
   }
 };

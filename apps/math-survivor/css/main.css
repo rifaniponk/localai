@@ -42,6 +42,35 @@ body {
 #gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 #labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 
+/* danger vignette: red edge glow when enemies close in */
+#vignette {
+  position: absolute; inset: 0; pointer-events: none; z-index: 4; opacity: 0;
+  background: radial-gradient(120% 90% at 50% 60%, transparent 55%, rgba(255, 60, 80, 0.28) 100%);
+  transition: opacity 0.45s ease;
+}
+#vignette.on { opacity: 1; animation: vignPulse 1.1s infinite; }
+@keyframes vignPulse { 50% { opacity: 0.65; } }
+
+/* stage / boss presentation banner */
+#banner {
+  position: absolute; top: 26%; left: 50%; transform: translateX(-50%) scale(0.8);
+  padding: 10px 26px; border-radius: 14px; z-index: 8; pointer-events: none; opacity: 0;
+  background: linear-gradient(180deg, rgba(16, 22, 48, 0.94), rgba(8, 12, 28, 0.94));
+  border: 1.5px solid var(--cyan);
+  box-shadow: 0 0 30px rgba(69, 224, 255, 0.4), inset 0 0 18px rgba(69, 224, 255, 0.12);
+}
+#banner b { font-family: var(--font-x); font-size: clamp(20px, 5.4vmin, 30px); letter-spacing: 0.18em; color: var(--cyan); text-shadow: 0 0 16px rgba(69, 224, 255, 0.7); }
+#banner.boss { border-color: var(--gold); box-shadow: 0 0 34px rgba(255, 211, 92, 0.5), inset 0 0 18px rgba(255, 211, 92, 0.12); }
+#banner.boss b { color: var(--gold); text-shadow: 0 0 18px rgba(255, 211, 92, 0.8); }
+#banner.show { animation: bannerIn 2.6s ease-out forwards; }
+@keyframes bannerIn {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.7); }
+  12% { opacity: 1; transform: translateX(-50%) scale(1.04); }
+  18% { transform: translateX(-50%) scale(1); }
+  78% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) scale(1); }
+}
+
 /* ---------- formula labels ---------- */
 .flabel {
   position: absolute; left: 0; top: 0;
@@ -51,10 +80,11 @@ body {
   letter-spacing: 0.02em;
   padding: 5px 12px;
   border-radius: 10px;
-  background: linear-gradient(180deg, rgba(20, 26, 54, 0.92), rgba(10, 14, 32, 0.92));
+  background: linear-gradient(180deg, rgba(16, 21, 46, 0.96), rgba(8, 11, 26, 0.96));
   border: 1.5px solid #4a5a9a;
-  box-shadow: 0 0 14px rgba(90, 123, 255, 0.35), inset 0 0 12px rgba(90, 123, 255, 0.12);
-  color: #eaf0ff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5), 0 0 14px rgba(90, 123, 255, 0.35), inset 0 0 12px rgba(90, 123, 255, 0.12);
+  color: #f2f6ff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
   white-space: nowrap;
   will-change: transform;
   transition: border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
@@ -93,12 +123,15 @@ body {
 .hud-stage { margin-top: 2px; text-align: center; font-size: 10px; letter-spacing: 0.3em; color: #5a6a9a; text-transform: uppercase; }
 .icon-btn {
   position: absolute; top: calc(10px + env(safe-area-inset-top));
-  width: 38px; height: 38px; border-radius: 10px;
+  width: 44px; height: 44px; border-radius: 12px;
   background: var(--panel); border: 1px solid #33406e; color: var(--ink);
-  font-size: 15px; pointer-events: auto; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: auto; cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-#exitBtn { right: 14px; }
-#soundBtn { right: 58px; }
+.icon-btn:active { border-color: var(--cyan); box-shadow: 0 0 14px rgba(69, 224, 255, 0.35); }
+#exitBtn { right: 12px; }
+#soundBtn { right: 62px; }
 
 #stageToast {
   position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
@@ -144,7 +177,7 @@ body {
 #keyRow0 { grid-template-columns: 1fr; max-width: 132px; margin-bottom: 7px; }
 .key {
   height: clamp(44px, 8.2vmin, 64px);
-  border-radius: 12px;
+  border-radius: 14px;
   background: linear-gradient(180deg, var(--key-hi), var(--key));
   border: 1px solid #3a4a80;
   color: var(--ink);
@@ -152,10 +185,10 @@ body {
   font-size: clamp(19px, 4.6vmin, 27px);
   cursor: pointer;
   transition: transform 0.06s, background 0.1s, box-shadow 0.1s;
-  box-shadow: 0 3px 0 #10152c, 0 0 12px rgba(69, 224, 255, 0.06);
+  box-shadow: 0 4px 0 #10152c, inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 12px rgba(69, 224, 255, 0.06);
 }
-.key.down { transform: translateY(3px) scale(0.96); box-shadow: 0 0 0 #10152c, 0 0 18px rgba(69, 224, 255, 0.35); background: #35447e; }
-.kenter { background: linear-gradient(180deg, #2a7a4a, #1c5a34); border-color: #59e07a; color: #eafff0; font-size: clamp(15px, 3.6vmin, 20px); letter-spacing: 0.08em; box-shadow: 0 3px 0 #0e2e1a, 0 0 14px rgba(89, 224, 122, 0.25); }
+.key.down { transform: translateY(4px) scale(0.96); box-shadow: 0 0 0 #10152c, 0 0 18px rgba(69, 224, 255, 0.35); background: #35447e; }
+.kenter { background: linear-gradient(180deg, #2a7a4a, #1c5a34); border-color: #59e07a; color: #eafff0; font-size: clamp(15px, 3.6vmin, 20px); letter-spacing: 0.08em; box-shadow: 0 4px 0 #0e2e1a, inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 14px rgba(89, 224, 122, 0.25); }
 .kenter.down { background: #3f9a62; box-shadow: 0 0 22px rgba(89, 224, 122, 0.6); }
 .kneg { color: var(--pink); }
 .kdel { height: clamp(38px, 6.6vmin, 50px); font-size: clamp(16px, 4vmin, 22px); }
@@ -220,4 +253,13 @@ body:not([data-screen="intro"]) .operator { display: none; }
 @media (max-height: 640px) {
   .key { height: clamp(38px, 7vmin, 48px); }
   #inputDisplay { font-size: clamp(28px, 7vmin, 40px); }
+  #banner { top: 20%; }
+}
+
+/* respect reduced motion for aggressive DOM effects */
+@media (prefers-reduced-motion: reduce) {
+  #vignette.on { animation: none; opacity: 0.8; }
+  #intro h1, .hud-combo.hot, .newbest, #playBtn, #againBtn { animation: none; }
+  #banner.show { opacity: 1; transform: translateX(-50%) scale(1); animation: none; transition: opacity 0.3s; }
+  .flabel.danger { animation: none; }
 }

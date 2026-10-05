@@ -1,5 +1,6 @@
 /* Math Survivor — UI shell: screens, calculator keypad, HUD, game over, debug. */
 import { Engine } from "./engine.js";
+import { AF } from "./assets.js";
 import { Save } from "./save.js";
 import { Audio } from "./audio.js";
 
@@ -128,6 +129,19 @@ const engine = new Engine({
     t.textContent = name;
     t.classList.remove("show"); void t.offsetWidth; t.classList.add("show");
   },
+  onStageFlash(name) {
+    const b = $("#banner"), bt = $("#bannerTxt");
+    bt.textContent = "STAGE CLEARED — " + name.toUpperCase();
+    b.classList.remove("boss", "show"); void b.offsetWidth; b.classList.add("show");
+  },
+  onBossIn() {
+    const b = $("#banner"), bt = $("#bannerTxt");
+    bt.textContent = "A DRAGON APPROACHES";
+    b.classList.remove("show"); void b.offsetWidth; b.classList.add("boss", "show");
+  },
+  onDanger(on) {
+    $("#vignette").classList.toggle("on", on);
+  },
   onGameOver(stats) {
     const isBest = Save.setBest(stats.grade, stats.score);
     if (isBest) setTimeout(() => Audio.cues.highScore(), 300);
@@ -152,7 +166,33 @@ window.__GAME = {
   spawnEnemy(t) { engine._spawnEnemy(t); },
   spawnPowerup(t) { engine._spawnPowerup(t); },
   spawnBoss() { engine._spawnBoss(); },
+  setStage(i) { engine._applyStage(Math.max(0, Math.min(4, i)), true); },
+  spawnElite() {
+    engine._spawnEnemy();
+    const last = engine.targets[engine.targets.length - 1];
+    if (last && last.kind === "enemy" && !last.elite) {
+      last.elite = true;
+      last.score = 200;
+      last.group.scale.setScalar(1.22);
+      last.group.traverse(o => { if (o.material && o.material.emissive) { o.material.emissive.setHex(0xff3c6e); o.material.emissiveIntensity = Math.max(o.material.emissiveIntensity || 0, 0.5); } });
+      const headY = { slime: 1.05, bat: 1.62, skeleton: 1.92, ghost: 1.72, golem: 1.95 }[last.type] || 1.6;
+      const crown = AF.eliteDeco(0xff3c6e);
+      crown.position.y = headY;
+      last.group.add(crown);
+      last.crown = crown;
+    }
+  },
+  sceneStats() {
+    let meshes = 0, geos = new Set(), mats = new Set(), tex = new Set();
+    engine.scene.traverse(o => {
+      if (o.isMesh || o.isPoints || o.isLine) meshes++;
+      if (o.geometry) geos.add(o.geometry.uuid);
+      if (o.material) { mats.add(o.material.uuid); if (o.material.map) tex.add(o.material.map.uuid); }
+    });
+    return { meshes, geos: geos.size, mats: mats.size, tex: tex.size, calls: engine.renderer.info.render.calls, pr: engine.renderer.getPixelRatio() };
+  },
   clearEnemies() { for (const e of [...engine.targets]) if (e.kind === "enemy") engine._removeTarget(e); },
+  dbgTargets() { return engine.targets.map(t => ({ kind: t.kind, type: t.type || t.puType || null, elite: !!t.elite, crown: !!t.crown, ttl: t.ttl != null ? Math.round(t.ttl * 10) / 10 : null })); },
   addHp() { engine.hp = Math.min(engine.maxHp, engine.hp + 1); engine._pushHud(); },
   fastForward(s) { engine.time += s; }
 };
@@ -184,10 +224,14 @@ $("#exitYesBtn").addEventListener("click", () => {
   show("intro");
   renderGrades();
 });
+function setSoundIcon(on) {
+  $("#sndOn").style.display = on ? "" : "none";
+  $("#sndOff").style.display = on ? "none" : "";
+}
 $("#soundBtn").addEventListener("click", () => {
   const v = !Save.sound;
   Save.sound = v; Audio.setEnabled(v);
-  $("#soundBtn").textContent = v ? "\uD83D\uDD0A" : "\uD83D\uDD07";
+  setSoundIcon(v);
 });
 
 // debug panel
@@ -213,13 +257,16 @@ if (/[?&]debug=true/.test(location.search)) {
 
 // boot
 Save.sound ? Audio.setEnabled(true) : Audio.setEnabled(false);
-$("#soundBtn").textContent = Save.sound ? "\uD83D\uDD0A" : "\uD83D\uDD07";
+setSoundIcon(Save.sound);
 buildKeypad();
 renderGrades();
 renderInput();
 if (/[?&]autostart=1/.test(location.search)) {
   const g = parseInt((location.search.match(/[?&]grade=(\d)/) || [])[1] || "2", 10);
   startRun(g);
+  const st = (location.search.match(/[?&]stage=([0-4])/) || [])[1];
+  if (st != null) engine._applyStage(parseInt(st, 10), true);
+  if (/[?&]still=1/.test(location.search)) { engine.paused = true; }
 } else {
   show("intro");
 }
