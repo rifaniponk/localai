@@ -100,7 +100,7 @@
     Game.enterRoom(0);
     Game.setState('explore');
     MD.UI.hud(true);
-    MD.UI.toast(MD.THEMES[Game.dungeonIdx % MD.THEMES.length].name + ' \u2014 ' + def.name, 2400);
+    MD.UI.toast(MD.DUNGEONS[Game.dungeonIdx].name + ' \u2014 ' + MD.THEMES[Game.dungeonIdx % MD.THEMES.length].name, 2400);
     Game.tut('move', '\ud83d\udd3a Use WASD / arrows / joystick to move!');
     MD.Audio.startMusic();
     MD.Save.save(Game.save);
