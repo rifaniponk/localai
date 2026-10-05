@@ -3,3 +3,4 @@ dist/
 manifest.json
 .DS_Store
 *.log
+config.bat
