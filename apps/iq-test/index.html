@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IQ TEST — localai ARCADE</title>
+  <meta name="description" content="A real adaptive IQ test: Raven-style matrices, sequences, spatial, verbal and logic. Scored on a true IQ scale.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../..//favicon.png" onerror="this.remove()">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="stars" aria-hidden="true"></canvas>
+  <div class="crt" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <a class="operator" href="../" title="back to localai arcade">
+    <span>◀ <b>LOCAL</b>AI ARCADE</span>
+  </a>
+
+  <main id="stage">
+    <!-- INTRO -->
+    <section id="scr-intro" class="screen active">
+      <h1 class="neon">IQ<span class="c2">TEST</span></h1>
+      <p class="tagline">a <b>real</b> adaptive intelligence test — Raven-style matrices, number series,
+        spatial folding, verbal analogies and logic. <b>16 items</b>, the engine adapts to your level
+        and scores you on a <b>true IQ scale</b> (mean 100, SD 15).</p>
+      <div class="specs">
+        <div class="spec"><span>ITEMS</span><b>16</b></div>
+        <div class="spec"><span>TIME LIMIT</span><b>10:00</b></div>
+        <div class="spec"><span>5 ABILITIES</span><b>ALL</b></div>
+      </div>
+      <p class="hint">no going back — answer fast, guess when unsure. results are estimated, not a diagnosis.</p>
+      <button id="btn-start" class="big">▶ START TEST</button>
+    </section>
+
+    <!-- QUIZ -->
+    <section id="scr-quiz" class="screen">
+      <div class="quiz-hud">
+        <div class="qprog"><div class="qbar" id="qbar"></div></div>
+        <div class="qmeta">
+          <span class="qnum">ITEM <b id="qidx">1</b>/16</span>
+          <span class="qcat" id="qcat">MATRIX</span>
+          <span class="qtimer" id="qtimer">10:00</span>
+        </div>
+      </div>
+      <h2 id="qprompt" class="prompt"></h2>
+      <div id="qfigure" class="figure"></div>
+      <div id="qoptions" class="options"></div>
+      <div id="qflash" class="flash" aria-hidden="true"></div>
+      <button id="btn-exit" class="exit" title="exit to main menu">✕ EXIT</button>
+    </section>
+
+    <!-- CONFIRM EXIT -->
+    <div id="confirm" class="confirm" role="dialog" aria-modal="true">
+      <div class="cbox">
+        <p class="cq">Abandon this test?</p>
+        <p class="cw">Your progress will be lost and no score will be shown.</p>
+        <div class="cbtns">
+          <button id="btn-confirm-yes" class="big danger">✕ ABANDON</button>
+          <button id="btn-confirm-no" class="big">KEEP GOING</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <section id="scr-result" class="screen">
+      <h2 class="neon small">YOUR SCORE</h2>
+      <div class="iqwrap">
+        <div class="iqbig"><span>IQ</span><b id="iqnum">—</b></div>
+        <div class="iqband" id="iqband"></div>
+        <div class="ci" id="iqci"></div>
+      </div>
+      <canvas id="bell" width="640" height="220" aria-label="bell curve of IQ population with your position"></canvas>
+      <div class="cats" id="cats"></div>
+      <div class="rnote" id="rnote"></div>
+      <div class="ractions">
+        <button id="btn-again" class="big">↻ RETAKE (new items)</button>
+        <button id="btn-menu" class="big alt">◀ MAIN MENU</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/svg.js"></script>
+  <script src="js/items.js"></script>
+  <script src="js/scoring.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
