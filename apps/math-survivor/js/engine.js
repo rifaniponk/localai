@@ -156,15 +156,30 @@ export class Engine {
   }
 
   // ---------------- run state ----------------
-  _resetRun() {
-    for (const t of this.targets || []) this._removeTarget(t, true);
+  _clearEntities() {
+    for (const t of [...(this.targets || [])]) {
+      this._unregister(t);
+      this._dispose(t.group); this.scene.remove(t.group);
+    }
+    for (const t of [...(this.dyingList || [])]) {
+      this._dispose(t.group); this.scene.remove(t.group);
+      if (t.el) t.el.remove();
+    }
+    for (const p of this.projs || []) this.scene.remove(p.mesh);
+    for (const w of this.waves || []) { this.scene.remove(w.mesh); w.mesh.geometry.dispose(); w.mesh.material.dispose(); }
+    for (const z of this.zaps || []) { this.scene.remove(z.mesh); z.mesh.geometry.dispose(); z.mesh.material.dispose(); }
     this.targets = [];
     this.dyingList = [];
     this.answerMap = new Map();
-    for (const p of this.projs || []) this.scene.remove(p.mesh);
     this.projs = [];
+    this.waves = [];
+    this.zaps = [];
     this.pList.length = 0;
     this.boss = null;
+  }
+
+  _resetRun() {
+    this._clearEntities();
 
     this.grade = 2;
     this.hp = 3; this.maxHp = 3;
@@ -201,9 +216,7 @@ export class Engine {
     this.gameOver = false;
     this.heroAnim.dead = 0;
     this.hero.rotation.x = 0;
-    for (const t of [...this.targets]) this._removeTarget(t, true);
-    for (const p of this.projs) this.scene.remove(p.mesh);
-    this.projs = [];
+    this._clearEntities();
   }
 
   // ---------------- difficulty ----------------

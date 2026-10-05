@@ -144,7 +144,8 @@ const engine = new Engine({
   }
 });
 window.__GAME = {
-  get state() { return { running: engine.running, gameOver: !!engine.gameOver, hp: engine.hp, score: engine.score, combo: engine.combo, time: engine.time, targets: engine.targets.map(t => ({ kind: t.kind, answer: t.answer, targeted: t.targeted })), answers: [...engine.answerMap.keys()], projs: engine.projs.length, boss: !!engine.boss }; },
+  get state() { return { running: engine.running, gameOver: !!engine.gameOver, hp: engine.hp, score: engine.score, combo: engine.combo, time: engine.time, targets: engine.targets.map(t => ({ kind: t.kind, answer: t.answer, targeted: t.targeted })), answers: [...engine.answerMap.keys()], projs: engine.projs.length, dying: engine.dyingList.length, boss: !!engine.boss }; },
+  sceneGroups() { let n = 0; engine.scene.children.forEach(o => { if (o.type === "Group") n++; }); return n; },
   start(g) { startRun(g); },
   submit(n) { return engine.submit(n); },
   type(n) { input = String(n); renderInput(); pressKey("enter"); },
