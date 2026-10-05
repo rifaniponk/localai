@@ -1,0 +1,10 @@
+{
+  "name": "iq-test",
+  "slug": "iq-test",
+  "description": "TODO: satu baris deskripsi",
+  "stack": "vanilla",
+  "status": "draft",
+  "created": "2026-10-05",
+  "build": "",
+  "dist": "."
+}
