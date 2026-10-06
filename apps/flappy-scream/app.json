@@ -1,8 +1,13 @@
 {
   "name": "Flappy Scream",
   "slug": "flappy-scream",
-  "description": "Flappy Bird, but you control it with your voice — scream to fly.",
+  "description": "Flappy Bird, but you control it with your voice \u2014 scream to fly.",
   "stack": "vanilla",
+  "tags": [
+    "fun game",
+    "web",
+    "voice control"
+  ],
   "status": "live",
   "created": "2026-10-04",
   "build": "",

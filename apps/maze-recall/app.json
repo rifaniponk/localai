@@ -1,8 +1,13 @@
 {
   "name": "Maze Recall",
   "slug": "maze-recall",
-  "description": "Memorize the glowing path for 10 seconds — the maze has many routes, but only that exact one counts. One wrong step ends the run.",
+  "description": "Memorize the glowing path for 10 seconds \u2014 the maze has many routes, but only that exact one counts. One wrong step ends the run.",
   "stack": "vanilla",
+  "tags": [
+    "fun game",
+    "web",
+    "memory"
+  ],
   "status": "live",
   "created": "2026-10-04",
   "build": "",

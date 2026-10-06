@@ -28,6 +28,9 @@ for (const slug of existsSync(appsDir) ? readdirSync(appsDir) : []) {
   for (const k of ["name", "slug", "description", "stack", "status"]) {
     if (!m[k]) errors.push(`apps/${slug}/app.json: missing field "${k}"`);
   }
+  if (m.tags != null && (!Array.isArray(m.tags) || m.tags.some(t => typeof t !== "string" || !t.trim()))) {
+    errors.push(`apps/${slug}/app.json: "tags" must be a non-empty array of strings`);
+  }
   if (m.slug !== slug) errors.push(`apps/${slug}/app.json: slug "${m.slug}" != folder name "${slug}"`);
   if (m.status === "draft") continue; // drafts stay unpublished on the landing page
   apps.push({ ...m, path: `/${m.slug}/` });

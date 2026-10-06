@@ -165,9 +165,7 @@
           </div>
           <p>${a.description}</p>
           <div class="tags">
-            <span class="tag">${a.stack}</span>
-            <span class="tag ${a.status}">${a.status}</span>
-            <span class="tag">${a.created || ""}</span>
+            ${(a.tags && a.tags.length ? a.tags : [a.stack]).map(t => `<span class="tag">${t}</span>`).join("")}
           </div>
         </a>`).join("");
 
