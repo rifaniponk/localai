@@ -109,6 +109,7 @@ export class Engine {
     this.hero = hero.group;
     this.heroParts = hero.parts;
     this.hero.position.set(0, 0, HERO_Z);
+    this.hero.rotation.y = Math.PI; // face the incoming enemies (model front is +z)
     this.scene.add(this.hero);
     this.heroAura = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.06, 8, 28), new THREE.MeshStandardMaterial({ color: 0xffd35c, emissive: 0xffb02a, emissiveIntensity: 1.4, transparent: true, opacity: 0 }));
     this.heroAura.rotation.x = Math.PI / 2;
