@@ -203,7 +203,7 @@ function startRun(grade) {
   Save.grade = grade;
   Save.bumpPlayed();
   input = ""; renderInput();
-  if (!Save.tutorialSeen && !/[?&]debug=true/.test(location.search)) {
+  if (!Save.tutorialSeen && !/[?&]debug=true/.test(location.search) && !/[?&]notut=1/.test(location.search)) {
     Save.tutorialSeen = true;
     $("#tut").classList.add("on");
     setTimeout(() => $("#tut").classList.remove("on"), 4200);
@@ -266,6 +266,14 @@ if (/[?&]autostart=1/.test(location.search)) {
   startRun(g);
   const st = (location.search.match(/[?&]stage=([0-4])/) || [])[1];
   if (st != null) engine._applyStage(parseInt(st, 10), true);
+  if (/[?&]boss=1/.test(location.search)) {
+    engine._spawnBoss();
+    const bz = (location.search.match(/[?&]bossz=(-?\d+)/) || [])[1];
+    if (bz != null && engine.boss) engine.boss.group.position.z = parseInt(bz, 10);
+    const pose = parseInt((location.search.match(/[?&]pose=(\d+)/) || [])[1] || "0", 10);
+    if (pose > 0) setTimeout(() => { engine.paused = true; }, pose * 1000);
+    else engine.paused = true;
+  }
   if (/[?&]still=1/.test(location.search)) { engine.paused = true; }
 } else {
   show("intro");
