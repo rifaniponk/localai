@@ -1,8 +1,9 @@
 {
   "name": "Flappy Scream",
   "slug": "flappy-scream",
-  "description": "Flappy Bird, but you control it with your voice \u2014 scream to fly.",
+  "description": "Flappy Bird, but you control it with your voice — scream to fly.",
   "stack": "vanilla",
+  "model": "qwen-3.8",
   "tags": [
     "fun game",
     "web",

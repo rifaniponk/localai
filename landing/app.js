@@ -165,6 +165,7 @@
           </div>
           <p>${a.description}</p>
           <div class="tags">
+            ${a.model ? `<span class="tag model" title="LLM that generated this app">${a.model}</span>` : ""}
             ${(a.tags && a.tags.length ? a.tags : [a.stack]).map(t => `<span class="tag">${t}</span>`).join("")}
           </div>
         </a>`).join("");

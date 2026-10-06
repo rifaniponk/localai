@@ -18,6 +18,7 @@ cat > "$dir/app.json" <<EOF
   "slug": "$slug",
   "description": "TODO: satu baris deskripsi",
   "stack": "$kind",
+  "model": "REPLACE-ME (e.g. qwen-3.8)",
   "status": "draft",
   "created": "$today",
   "build": "",

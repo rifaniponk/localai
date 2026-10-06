@@ -3,6 +3,7 @@
   "slug": "math-dungeon",
   "description": "Explore dungeons, battle monsters, and open treasure by solving math. Grade 1-6 adaptive curriculum powers every sword swing.",
   "stack": "vanilla",
+  "model": "qwen-3.8",
   "tags": [
     "edu game",
     "web",
