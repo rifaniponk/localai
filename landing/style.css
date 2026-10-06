@@ -188,6 +188,7 @@ main { position: relative; z-index: 2; }
 .tag { border: 1px solid var(--line); padding: .3rem .5rem; color: var(--muted); }
 .tag.live { color: var(--green); border-color: var(--green); }
 .tag.draft { color: var(--yellow); border-color: var(--yellow); }
+.tag.model { color: var(--cyan); border-color: var(--cyan); text-shadow: 0 0 8px rgba(38,229,255,.5); }
 .play {
   font-family: var(--font-p); font-size: .6rem; color: var(--pink);
   white-space: nowrap;

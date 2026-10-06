@@ -1,8 +1,9 @@
 {
   "name": "Math Survivor",
   "slug": "math-survivor",
-  "description": "Calculate. Shoot. Survive. Monsters carry math formulas \u2014 type the answer and the hero blasts them. Endless arcade survival, grade 1-6 curriculum.",
+  "description": "Calculate. Shoot. Survive. Monsters carry math formulas — type the answer and the hero blasts them. Endless arcade survival, grade 1-6 curriculum.",
   "stack": "vanilla",
+  "model": "qwen-3.8",
   "tags": [
     "edu game",
     "web",
