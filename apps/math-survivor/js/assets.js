@@ -568,7 +568,8 @@ export const AF = {
       bomb: { color: 0xff7a4a, emissive: 0xff4a1a },
       shield: { color: 0x8aff9e, emissive: 0x3adf5e },
       slow: { color: 0xc9a2ff, emissive: 0x9a5cff },
-      lightning: { color: 0xffe25c, emissive: 0xffc81a }
+      lightning: { color: 0xffe25c, emissive: 0xffc81a },
+      heal: { color: 0xff5c6e, emissive: 0xff2a44 }
     }[type] || { color: 0xffffff, emissive: 0xaaaaaa };
     const g = new THREE.Group();
     const m = new THREE.MeshStandardMaterial({ color: conf.color, emissive: conf.emissive, emissiveIntensity: 1.2, roughness: 0.2, metalness: 0.2 });
@@ -614,6 +615,15 @@ export const AF = {
       const b3 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.24, 0.12), m);
       b3.position.set(0.12, -0.3, 0); b3.rotation.z = 0.4;
       icon.add(b1, b2, b3);
+    } else if (type === "heal") { // heart: two spheres + inverted cone
+      icon = new THREE.Group();
+      const lobe = new THREE.SphereGeometry(0.24, 12, 10);
+      const l = new THREE.Mesh(lobe, m); l.position.set(-0.2, 0.18, 0);
+      const r = new THREE.Mesh(lobe, m); r.position.set(0.2, 0.18, 0);
+      const tip = new THREE.Mesh(new THREE.ConeGeometry(0.36, 0.55, 12), m);
+      tip.position.set(0, -0.22, 0); tip.rotation.x = Math.PI; tip.scale.z = 0.6;
+      l.scale.z = r.scale.z = 0.6;
+      icon.add(l, r, tip);
     } else {
       icon = new THREE.Mesh(new THREE.OctahedronGeometry(0.42), m);
     }

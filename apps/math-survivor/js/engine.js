@@ -185,7 +185,7 @@ export class Engine {
     this.time = 0;
     this.spawnTimer = 1.2;
     this.powerTimer = 22;
-    this.bossTimer = 105;
+    this.bossTimer = 55;
     this.breather = 0;
     this.freezeT = 0; this.slowT = 0;
     this.shield = false;
@@ -336,7 +336,7 @@ export class Engine {
     if (this.targets.some(t => t.kind === "powerup")) return;
     const q = this._makeQuestion();
     if (!q) return;
-    const types = ["freeze", "bomb", "shield", "slow", "lightning"];
+    const types = ["freeze", "bomb", "shield", "slow", "lightning", "heal"];
     const type = forceType || types[Math.floor(Math.random() * types.length)];
     const built = AF.powerup(type);
     const lane = this._freeLane();
@@ -376,6 +376,7 @@ export class Engine {
     this.answerMap.delete(boss.answer);
     const q = this._makeQuestion() || MG.make(this.grade, this._tier());
     boss.q = q; boss.answer = q.answer;
+    boss.targeted = false; // re-arm: boss must be attackable with the new formula
     if (boss.el) boss.el.textContent = q.display;
     this.answerMap.set(q.answer, boss);
   }
@@ -532,6 +533,19 @@ export class Engine {
         this.shieldDome.visible = true;
         Audio.cues.shield();
         break;
+      case "heal": {
+        if (this.hp < this.maxHp) {
+          this.hp++;
+          this._floatScore(t, "+1 HP");
+        } else {
+          this.score += 150; // full health: bonus instead
+          this._floatScore(t, "+150");
+        }
+        Audio.cues.heal();
+        this._wave(hx, hz, 0xff5c6e);
+        this.burst(hx, 1.4, hz, 0xff8a9a, 26, 3);
+        break;
+      }
       case "bomb": {
         Audio.cues.bomb();
         this.shake = 1.1;
@@ -783,8 +797,8 @@ export class Engine {
       if (this.slowT > 0) this.slowT -= wdt;
       if (this.breather > 0) this.breather -= wdt;
 
-      // stage progression every 100s
-      const wantStage = Math.min(STAGES.length - 1, Math.floor(this.time / 100));
+      // stage progression every 60s
+      const wantStage = Math.min(STAGES.length - 1, Math.floor(this.time / 60));
       if (wantStage !== this.stageIdx && !this.stageLerp) this._applyStage(wantStage);
 
       // spawning
@@ -798,7 +812,7 @@ export class Engine {
       this.powerTimer -= wdt;
       if (this.powerTimer <= 0) { this.powerTimer = 26 + Math.random() * 14; this._spawnPowerup(); }
       this.bossTimer -= wdt;
-      if (this.bossTimer <= 0 && !this.boss) { this.bossTimer = 130 + Math.random() * 30; this._spawnBoss(); }
+      if (this.bossTimer <= 0 && !this.boss) { this.bossTimer = 70 + Math.random() * 20; this._spawnBoss(); }
 
       // enemies move
       const speedMul = this._speedMul() * (this.freezeT > 0 ? 0 : this.slowT > 0 ? 0.35 : 1);

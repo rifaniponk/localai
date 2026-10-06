@@ -65,6 +65,7 @@ export const Audio = (function () {
     freeze() { noise(0.5, 0.15, 5000, 1200); tone(1568, { type: "sine", dur: 0.4, vol: 0.15, slide: -400 }); },
     lightning() { noise(0.3, 0.35, 4000, 400); tone(2093, { type: "sawtooth", dur: 0.15, vol: 0.12, slide: -1200 }); },
     shield() { tone(392, { type: "sine", dur: 0.3, vol: 0.2, slide: 300 }); },
+    heal() { [523, 659, 784].forEach((f, i) => tone(f, { type: "sine", dur: 0.18, vol: 0.22, delay: i * 0.08 })); tone(1047, { type: "sine", dur: 0.35, vol: 0.18, delay: 0.24 }); },
     slow() { tone(440, { type: "sine", dur: 0.5, vol: 0.18, slide: -220 }); },
     combo(i) { const f = 659 + 60 * Math.min(8, ((i || 0) % 9)); tone(f, { type: "square", dur: 0.09, vol: 0.14 }); tone(f * 1.5, { type: "square", dur: 0.12, vol: 0.1, delay: 0.05 }); },
     hurt() { tone(220, { type: "sawtooth", dur: 0.25, vol: 0.3, slide: -120 }); noise(0.2, 0.2, 600, 150); },

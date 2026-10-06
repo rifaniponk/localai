@@ -108,7 +108,7 @@ body {
 .hud-row { display: flex; justify-content: space-between; align-items: flex-start; }
 .hud-score span { display: block; font-size: 10px; letter-spacing: 0.2em; color: #8fa2d8; }
 .hud-score b { font-family: var(--font-x); font-size: clamp(28px, 7vmin, 40px); color: var(--ink); line-height: 0.9; text-shadow: 0 0 12px rgba(69, 224, 255, 0.4); }
-.hud-hearts { display: flex; gap: 5px; font-size: clamp(18px, 4.6vmin, 26px); }
+.hud-hearts { display: flex; gap: 6px; margin-top: 7px; font-size: clamp(18px, 4.6vmin, 26px); }
 .heart { color: var(--red); text-shadow: 0 0 10px rgba(255, 92, 110, 0.6); transition: all 0.3s; }
 .heart.lost { color: #39415f; text-shadow: none; transform: scale(0.8); }
 .hud-row2 { margin-top: 4px; align-items: center; }
