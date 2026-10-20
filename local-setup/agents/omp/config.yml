@@ -17,7 +17,8 @@ defaultThinkingLevel: minimal
 compaction:
   enabled: true
   asyncEnabled: false      # background "speculative" summaries evicted the agent's conversation from the cache (3.6x slower)
-  thresholdTokens: 65536   # 15K compacted every few tool calls; with a 256K window, compact much later
+  thresholdTokens: 131072  # 15K compacted every few tool calls; 64K compacted a 92K session once (about 15 s);
+                           # 128K leaves room in the 256K window and keeps any cache-miss re-read near 33 s
   keepRecentTokens: 16000
   supersedeReads: false    # these two rewrite earlier tool results in place,
   dropUseless: false       # which breaks the server's prefix cache from that point on

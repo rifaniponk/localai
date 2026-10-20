@@ -246,6 +246,9 @@ main(sys.argv[1:])
         (r / "test_library.py").write_text("import unittest\nclass T(unittest.TestCase):\n    def test_x(self):\n        import library\n"),
         (r / "README.md").write_text("add remove list search checkout checkin stats\n")),
 }
+import long_task  # noqa: E402
+
+REF["s-fleet-session"] = long_task.reference
 ANS = {"code-question": ("I looked around.\nANSWER: 3 with_retries", "It is capped by BACKOFF_CAP.\nANSWER: 12 seconds `backoff_delay`")}
 
 ok = True

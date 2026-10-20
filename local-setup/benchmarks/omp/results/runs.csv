@@ -540,3 +540,8 @@ label,task,rep,passed,wall_s,llm_calls,tool_calls,input,output,cache_read,max_in
 99-final-e146,x-stale-cache,2,True,7.5,6,7,690,681,31485,5928,6,0,7.05,2.39
 99-final-e146,x-toposort,1,True,19.6,5,5,611,2456,30022,7531,5,0,19.1,2.13
 99-final-e146,x-toposort,2,True,32.9,15,16,1793,4055,112409,10239,15,0,32.02,6.48
+10-compact128,s-fleet-session,1,True,208.4,97,138,77068,19390,7418284,100877,97,0,201.27,60.7
+10-compact128,s-fleet-session,2,True,169.0,60,97,72718,16096,4156387,92645,60,0,162.28,44.82
+10-compact192,s-fleet-session,1,True,140.3,56,90,74460,13318,3846131,92271,56,0,134.38,42.04
+10-compact64,s-fleet-session,1,True,189.4,69,113,96661,16741,2219067,66090,71,2,173.5,58.37
+10-compact64,s-fleet-session,2,True,209.5,69,113,107123,18650,2831303,65438,71,2,190.82,58.27

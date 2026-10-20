@@ -2,7 +2,7 @@
 
 Measured on 2026-10-20: RTX 5080 16 GB, Ryzen 9 9950X, 96 GB RAM, Linux; Strata 0.1.45.3 (engine build 0.1.44.1)
 serving Qwen3.8-Flash-Next IQ3_S at 262,144 context; omp 18.12.3. Every run's numbers are in
-[runs.csv](runs.csv) (541 runs; `label` is the variant, see [../configs/README.md](../configs/README.md)). The rerun
+[runs.csv](runs.csv) (546 runs; `label` is the variant, see [../configs/README.md](../configs/README.md)). The rerun
 on engine 0.1.46.1 is in [New engine](#new-engine-0146).
 
 ## Original vs tuned
@@ -61,6 +61,27 @@ The tuned setup again, later the same day, on Strata 0.2.1.1 (engine 0.1.46.1, c
 The new engine is not slower. One task makes the difference: `x-toposort` took 33 s and 20 s (20 model calls,
 6,511 output tokens) against 10 s and 12 s (7 calls, 2,509 tokens), because the model took a longer route. That is
 31 of the 37 extra seconds; the other 14 tasks total within 6 s of each other. `h-calc-bugs` passed both runs.
+
+## Compaction threshold on a longer session
+
+Engine 0.1.46.1, the tuned setup with only `compaction.thresholdTokens` changed, on `s-fleet-session` (10 prompts
+over 32 modules). Interleaved; the 192K run was the pilot, run just before.
+
+| Threshold | Passed | Time | Compactions | Peak context | Uncached prompt tokens |
+|---|---|---|---|---|---|
+| 64K | 2/2 | 189 s, 210 s | 1 each (after prompt 1: 66K -> 26-33K) | 51K, 64K | 96,661, 107,123 |
+| 128K | 2/2 | 208 s, 169 s | none | 100K, 92K | 77,068, 72,718 |
+| 192K | 1/1 | 140 s | none | 92K | 74,460 |
+
+One compaction cost two summary requests (7.7-8.2 s and 2.2-2.3 s) and 3.9-6.4 s of re-reading on the next step:
+14-17 s. The whole-session times overlap because the model's route varies (56-97 model calls per run), so they do
+not show a difference on their own. Time per model call was the same with and without compaction (2.1-2.8 s), so a
+92-100K context did not slow the steps. The setup now compacts at 128K.
+
+Why the sessions stay small: omp's `read` folds files over 100 lines (`read.summarize`, on by default), so a
+270-line module costs about 1.9K tokens in context instead of 3.2K, and on a 72-module build of the same task the
+model switched to grep and scripts (39 shell calls, 14 reads) and peaked at 58K. That run is not in runs.csv (it is
+a different build of the task). Above 128K, 128K and 192K would differ; no session here got there.
 
 ## Step by step
 

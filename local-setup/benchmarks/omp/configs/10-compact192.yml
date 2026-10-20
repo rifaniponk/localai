@@ -1,0 +1,10 @@
+compaction:
+  enabled: true
+  asyncEnabled: false
+  thresholdTokens: 196608
+  keepRecentTokens: 16000
+  supersedeReads: false
+  dropUseless: false
+  methodOrder:
+    - soft
+  idleEnabled: false

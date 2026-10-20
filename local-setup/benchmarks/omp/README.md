@@ -16,8 +16,10 @@ passes on a hand-written fix.
 | `h-` | `h-calc-bugs`, `h-lru-cache`, `h-todo-priority`, `h-traceback-root-cause` | multi-file bugs and features |
 | `x-` | `x-csv-summary`, `x-merge-intervals`, `x-stale-cache`, `x-toposort` | specs whose edge cases decide the result |
 | `s-` | `s-library-session` | 8 prompts in one continued session; grows the context past compaction |
+| `s-` | `s-fleet-session` | 10 prompts over 32 generated modules (`long_task.py`): read them all, fix 13 planted bugs, add a registry, a report and tests; grows to about 90-100K tokens |
 
-`s-` tasks run only when named (`--tasks s-library-session`): one takes 2-15 minutes.
+`s-` tasks run only when named (`--tasks s-library-session`): one takes 2-15 minutes. `validate_checks.py` covers
+them too; for `s-fleet-session` each of the 13 planted bugs left alone, and each missed requirement, fails the check.
 
 ## Running
 

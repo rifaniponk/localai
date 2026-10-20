@@ -50,6 +50,7 @@ messages it already sent. Measured step by step (each against the setup of its t
 | `compat.qwenTemplateReasoningEffort: true` | models.yml | without it omp sends no thinking level at all and every request runs at the template default, xhigh. With it, omp's level reaches the model |
 | thinking off (`minimal`) | both files | short tasks: 21.7 s -> 11.9 s per task (xhigh -> off); 8-prompt session: 604 s -> 304 s (medium -> off). Pass rate: see above |
 | compaction at 64K, `supersedeReads`/`dropUseless` off | config.yml | the 15K threshold compacted 4 times per session (3 summary requests + a full re-read each); session 304 s -> 177 s |
+| compaction at 128K | config.yml | a 10-prompt session over 32 modules grows to 92-100K: at 64K it compacted once (two summary requests and a re-read, 14-17 s), at 128K never. Whole session 189 s, 210 s (64K) against 208 s, 169 s (128K) and 140 s (192K): within the model's route-to-route variation; 5/5 passed |
 | smaller prompt and tool set | config.yml | system prompt + tools 7,737 -> 5,004 tokens; no speed change on short tasks (more room in long ones) |
 | `edit.mode: replace` | config.yml | 0 failed edits in 58 (hashline: 6-7 per 33 runs, and a wrong hashline edit can land in the file as text) |
 | `maxTokens: 16384` | models.yml | no measured change; 4096 can cut off a large file write |
@@ -64,6 +65,8 @@ Tried and not kept: turning off the todo tool (slower, one failure), the "precis
 - When a problem needs careful reasoning (tricky edge cases, parsers, algorithms), raise the thinking level for that
   session in omp. `low`, `medium` and `high` all reach the model now. Changing the level mid-session re-reads the
   prompt once (the server puts the effort instruction at the start of the prompt for `low` and `high`).
+- omp's `read` folds long files (`read.summarize`, on by default): docstrings and bodies are elided and the model
+  re-reads ranges it needs. It keeps the context small; in the benchmark sessions it never passed 100K.
 - Session titles still use omp's default "fork" generator. It shares the conversation's prefix, so the server's cache
   covers it, and it runs once per session.
 - Measured on omp 18.12.3 and Strata 0.1.45.3 (engine build 0.1.44.1); the tuned setup again on Strata 0.2.1.1

@@ -953,4 +953,10 @@ readme = (REPO / "README.md").read_text()
 need(all(c in readme for c in ("add", "remove", "list", "search", "checkout", "checkin", "stats")), "README incomplete")
 ''', prompts=S_PROMPTS)
 
+# ---------------------------------------------------------------- a longer session: 10 prompts over 32 modules
+import long_task  # noqa: E402
+
+task("s-fleet-session", "\n".join(long_task.PROMPTS), long_task.files(), COMMON + long_task.check_code(),
+     prompts=long_task.PROMPTS)
+
 print("tasks:", sorted(p.name for p in ROOT.iterdir()))
