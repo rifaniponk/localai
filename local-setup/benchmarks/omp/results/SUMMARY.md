@@ -2,7 +2,8 @@
 
 Measured on 2026-10-20: RTX 5080 16 GB, Ryzen 9 9950X, 96 GB RAM, Linux; Strata 0.1.45.3 (engine build 0.1.44.1)
 serving Qwen3.8-Flash-Next IQ3_S at 262,144 context; omp 18.12.3. Every run's numbers are in
-[runs.csv](runs.csv) (509 runs; `label` is the variant, see [../configs/README.md](../configs/README.md)).
+[runs.csv](runs.csv) (541 runs; `label` is the variant, see [../configs/README.md](../configs/README.md)). The rerun
+on engine 0.1.46.1 is in [New engine](#new-engine-0146).
 
 ## Original vs tuned
 
@@ -43,6 +44,24 @@ Per task (median of 2, short tasks):
 | x-stale-cache | 61.9 s | 11.4 s |
 | x-toposort | 87.0 s | 10.8 s |
 
+## New engine (0.1.46)
+
+The tuned setup again, later the same day, on Strata 0.2.1.1 (engine 0.1.46.1, compiled on this PC), label
+`99-final-e146`. Same tasks, same machine, same server settings.
+
+| | engine 0.1.44.1 | engine 0.1.46.1 |
+|---|---|---|
+| 15 short tasks x 2: passed | 29/30 | 30/30 |
+| median per task | 7.7 s | 9.2 s |
+| total | 285 s | 322 s |
+| output tokens per second of model time | 103.0 | 109.5 |
+| 8-prompt session: passed | 2/2 | 2/2 |
+| 8-prompt session: time | 117 s, 141 s | 124 s, 141 s |
+
+The new engine is not slower. One task makes the difference: `x-toposort` took 33 s and 20 s (20 model calls,
+6,511 output tokens) against 10 s and 12 s (7 calls, 2,509 tokens), because the model took a longer route. That is
+31 of the 37 extra seconds; the other 14 tasks total within 6 s of each other. `h-calc-bugs` passed both runs.
+
 ## Step by step
 
 Each step against the base of its time (n = runs per variant; short-task totals over the tasks both ran).
@@ -64,6 +83,6 @@ above are clearly real; the small ones were kept because they cost nothing and d
 
 ## Accuracy and thinking
 
-Over every short-task run, thinking off passed 268/270 and thinking on (xhigh, medium or low) 224/224. Both
+Over every short-task run, thinking off passed 298/300 and thinking on (xhigh, medium or low) 224/224. Both
 failures are the same task, `h-calc-bugs` (a nested unary minus in a parser). Thinking off is the faster default;
 raise the level in omp for intricate logic.

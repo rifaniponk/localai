@@ -19,3 +19,4 @@ The base moved as winners were adopted, so each step was measured against the ba
 | `07-pp0` / `07-code` | presence penalty 0 / the "precise coding" sampling set | + 06 |
 | `08-guide` / `08-notodo` | the appended working-style prompt / no todo tool | + 07-pp0 |
 | `99-final` | everything adopted (equals `../../agents/omp`) | + 08-guide |
+| `99-final-e146` | the same files as `99-final`, run on engine 0.1.46.1 | 99-final |

@@ -21,8 +21,12 @@ the session row is 1 run against 2.
 | 8-prompt session: time | 1,680 s (68 side requests) | 117 s and 141 s (**about 13x faster**) |
 
 The one failure is a parser edge case (`h-calc-bugs`: a nested unary minus). It is the only task that ever failed:
-with thinking off it passed 16 of 18 runs, with any thinking level 17 of 17. Over all short-task runs of the whole
-tuning, thinking off passed 268/270 and thinking on 224/224.
+with thinking off it passed 18 of 20 runs, with any thinking level 17 of 17. Over all short-task runs of the whole
+tuning, thinking off passed 298/300 and thinking on 224/224.
+
+On the newer engine 0.1.46.1 (Strata 0.2.1.1) the tuned setup passed 30/30 short tasks (median 9.2 s, total 322 s)
+and the session in 124 s and 141 s: the same speed, within run-to-run noise (see
+[the results](../../benchmarks/omp/results/SUMMARY.md#new-engine-0146)).
 
 ## Install
 
@@ -62,5 +66,6 @@ Tried and not kept: turning off the todo tool (slower, one failure), the "precis
   prompt once (the server puts the effort instruction at the start of the prompt for `low` and `high`).
 - Session titles still use omp's default "fork" generator. It shares the conversation's prefix, so the server's cache
   covers it, and it runs once per session.
-- Measured on omp 18.12.3 and Strata 0.1.45.3 (engine build 0.1.44.1). Other omp versions may name or default
+- Measured on omp 18.12.3 and Strata 0.1.45.3 (engine build 0.1.44.1); the tuned setup again on Strata 0.2.1.1
+  (engine 0.1.46.1). Other omp versions may name or default
   settings differently: check with `omp config list`.
