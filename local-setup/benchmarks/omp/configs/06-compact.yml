@@ -1,0 +1,5 @@
+compaction:
+  thresholdTokens: 65536
+  keepRecentTokens: 16000
+  supersedeReads: false
+  dropUseless: false

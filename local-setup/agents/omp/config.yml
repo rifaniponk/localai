@@ -1,0 +1,66 @@
+# omp (oh-my-pi) settings tuned for a local Strata server running Qwen3.8-Flash-Next.
+# Copy to ~/.omp/agent/config.yml. Every value here was measured against the original setup:
+# see README.md in this folder for the numbers.
+#
+# The server decodes one request at a time and reuses the start of the previous prompt (its conversation cache).
+# Most of these settings keep omp from sending side requests or rewriting earlier messages, because either one makes
+# the server read the whole conversation again.
+
+modelRoles:
+  default: strata/qwen3.8-flash-next-iq3_s
+
+# "minimal" is sent as reasoning_effort=minimal, which Strata reads as thinking off.
+# Measured: about 45% faster than xhigh on short tasks and 2x faster on an 8-prompt session, same pass rate.
+# Raise it per session in omp when a problem needs it (low / medium / high all reach the model).
+defaultThinkingLevel: minimal
+
+compaction:
+  enabled: true
+  asyncEnabled: false      # background "speculative" summaries evicted the agent's conversation from the cache (3.6x slower)
+  thresholdTokens: 65536   # 15K compacted every few tool calls; with a 256K window, compact much later
+  keepRecentTokens: 16000
+  supersedeReads: false    # these two rewrite earlier tool results in place,
+  dropUseless: false       # which breaks the server's prefix cache from that point on
+  methodOrder:
+    - soft
+  idleEnabled: false
+
+# A smaller system prompt and fewer tools: about 5.0K prompt tokens instead of 7.7K.
+personality: none
+dev:
+  autoqa: false            # drops the "report tool issues" block from the prompt
+tui:
+  reactions: false
+recap:
+  enabled: false           # idle recap is a side request that re-reads the whole session
+providers:
+  cacheWarming: "off"
+tools:
+  xdev: false              # grep becomes a normal tool instead of a two-step xd:// device
+  intentTracing: false     # no extra "intent" field in every tool call
+task:
+  maxRecursionDepth: 0     # no subagents: on a one-request-at-a-time server they only queue
+eval:
+  py: false
+  js: false
+lsp:
+  enabled: false
+web_search:
+  enabled: false
+debug:
+  enabled: false
+astEdit:
+  enabled: false
+browser:
+  enabled: false
+
+# Search-and-replace edits: 0 failed edits in 58 against 6-7 per 33 runs with hashline (whose mistakes can also
+# land in the file as text).
+edit:
+  mode: replace
+
+# The model card's non-thinking sampling has presence_penalty 1.5, which pushes the model away from tokens it has
+# already used - every identifier in code. Measured: -12% time on short tasks, -11% on the long session.
+presencePenalty: 0
+
+setupVersion: 2

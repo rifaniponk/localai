@@ -1,0 +1,28 @@
+# omp custom model for a local Strata server. Copy to ~/.omp/agent/models.yml.
+#
+# baseUrl: the server's address. Use http://127.0.0.1:9191/v1 on the same PC, or the server's LAN address when omp
+#          runs on another machine (the server must then be started with an API key).
+# apiKey:  the NAME of an environment variable that holds the server's key (omp reads the variable). Without such a
+#          variable omp sends the text itself as the key, so export it before starting omp:
+#              export STRATA_API_KEY='...'
+providers:
+  strata:
+    baseUrl: http://127.0.0.1:9191/v1
+    api: openai-completions
+    apiKey: STRATA_API_KEY
+    compat:
+      supportsDeveloperRole: false
+      # Without this omp never sends its thinking level: every request ran at the template default, xhigh.
+      qwenTemplateReasoningEffort: true
+    models:
+      - id: qwen3.8-flash-next-iq3_s
+        name: Qwen3.8-Flash-Next (Strata, local)
+        reasoning: true
+        input: [text]
+        contextWindow: 262144   # the server's --max-context
+        maxTokens: 16384        # 4096 can cut off a large file write
+        thinking:
+          mode: effort
+          efforts: [minimal, low, medium, high]
+          defaultLevel: minimal # this overrides defaultThinkingLevel in config.yml, so keep the two the same
+        cost: {input: 0, output: 0, cacheRead: 0, cacheWrite: 0}

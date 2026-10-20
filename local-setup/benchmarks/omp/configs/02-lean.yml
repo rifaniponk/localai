@@ -1,0 +1,27 @@
+personality: none
+dev:
+  autoqa: false
+tui:
+  reactions: false
+recap:
+  enabled: false
+providers:
+  cacheWarming: "off"
+tools:
+  xdev: false
+  intentTracing: false
+task:
+  maxRecursionDepth: 0
+eval:
+  py: false
+  js: false
+lsp:
+  enabled: false
+web_search:
+  enabled: false
+debug:
+  enabled: false
+astEdit:
+  enabled: false
+browser:
+  enabled: false

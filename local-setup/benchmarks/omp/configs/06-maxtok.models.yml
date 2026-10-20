@@ -1,0 +1,20 @@
+providers:
+  strata:
+    baseUrl: http://127.0.0.1:9192/v1
+    api: openai-completions
+    apiKey: STRATA_API_KEY
+    compat:
+      supportsDeveloperRole: false
+      qwenTemplateReasoningEffort: true
+    models:
+      - id: qwen3.8-flash-next-iq3_s
+        name: Qwen3.8-Flash-Next (Strata, local)
+        reasoning: true
+        input: [text]
+        contextWindow: 262144
+        maxTokens: 16384
+        thinking:
+          mode: effort
+          efforts: [minimal, low, medium, high]
+          defaultLevel: medium
+        cost: {input: 0, output: 0, cacheRead: 0, cacheWrite: 0}

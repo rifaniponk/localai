@@ -1,0 +1,7 @@
+# generated or local: tasks are rebuilt by make_tasks.py, runs contain local paths and tool output
+tasks/
+agent/
+results/*/
+proxy.jsonl
+*.log
+__pycache__/

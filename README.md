@@ -6,6 +6,9 @@ Every app is showcased at **[localai.ponkcoding.com](https://localai.ponkcoding.
 
 No cloud AI APIs were involved. Everything here was written by a local model.
 
+How the local AI is set up (the model server, the coding agents' configs and the benchmarks behind them) is in
+[local-setup/](local-setup/README.md). That folder is the one exception: it was written with Claude, a cloud model.
+
 ## Live
 
 | URL | What |
@@ -21,6 +24,7 @@ localai/
 │   ├── app.json            # required manifest metadata
 │   └── ...                 # any stack: vanilla JS, React/Vite, Angular, ...
 ├── landing/                # showcase page served at the root domain
+├── local-setup/            # model server, agent configs, benchmarks (not deployed)
 ├── scripts/
 │   ├── new-app.sh          # scaffold a new app (vanilla | vite)
 │   ├── build-manifest.mjs  # scan apps/*/app.json -> manifest.json

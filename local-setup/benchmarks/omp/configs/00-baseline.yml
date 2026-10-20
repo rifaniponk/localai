@@ -1,0 +1,12 @@
+modelRoles:
+  default: strata/qwen3.8-flash-next-iq3_s
+defaultThinkingLevel: medium
+compaction:
+  enabled: true
+  asyncEnabled: true
+  thresholdTokens: 15000
+  keepRecentTokens: 4000
+  methodOrder:
+    - soft
+  idleEnabled: false
+setupVersion: 2
