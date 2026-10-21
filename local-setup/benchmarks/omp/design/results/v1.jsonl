@@ -1,0 +1,10 @@
+{"cond": "v1", "task": "landing", "sample": 1, "seconds": 121, "rc": 0, "timed_out": false, "has_page": true, "high": 1, "med": 2, "low": 0, "console_errors": 0, "kinds": ["high:contrast", "med:contrast", "med:tap-target"], "font_sizes": 7}
+{"cond": "v1", "task": "landing", "sample": 2, "seconds": 121, "rc": 0, "timed_out": false, "has_page": true, "high": 0, "med": 3, "low": 0, "console_errors": 0, "kinds": ["med:contrast", "med:tap-target"], "font_sizes": 8}
+{"cond": "v1", "task": "dashboard", "sample": 1, "seconds": 120, "rc": 0, "timed_out": false, "has_page": true, "high": 0, "med": 2, "low": 0, "console_errors": 0, "kinds": ["med:tiny-text"], "font_sizes": 7}
+{"cond": "v1", "task": "dashboard", "sample": 2, "seconds": 110, "rc": 0, "timed_out": false, "has_page": true, "high": 0, "med": 2, "low": 0, "console_errors": 0, "kinds": ["med:tiny-text"], "font_sizes": 7}
+{"cond": "v1", "task": "settings", "sample": 1, "seconds": 113, "rc": 0, "timed_out": false, "has_page": true, "high": 0, "med": 1, "low": 0, "console_errors": 0, "kinds": ["med:tap-target"], "font_sizes": 7}
+{"cond": "v1", "task": "settings", "sample": 2, "seconds": 144, "rc": 0, "timed_out": false, "has_page": true, "high": 0, "med": 1, "low": 0, "console_errors": 0, "kinds": ["med:tap-target"], "font_sizes": 7}
+{"cond": "v1", "task": "mobile", "sample": 1, "seconds": 140, "rc": 0, "timed_out": false, "has_page": true, "high": 0, "med": 2, "low": 0, "console_errors": 0, "kinds": ["med:contrast"], "font_sizes": 9}
+{"cond": "v1", "task": "mobile", "sample": 2, "seconds": 180, "rc": 0, "timed_out": false, "has_page": true, "high": 0, "med": 2, "low": 0, "console_errors": 0, "kinds": ["med:contrast"], "font_sizes": 6}
+{"cond": "v1", "task": "egui", "sample": 1, "seconds": 600, "rc": null, "timed_out": true, "compiles": false, "compile_errors": 7}
+{"cond": "v1", "task": "egui", "sample": 2, "seconds": 600, "rc": null, "timed_out": true, "compiles": false, "compile_errors": 19}

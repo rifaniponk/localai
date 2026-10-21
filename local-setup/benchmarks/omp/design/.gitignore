@@ -1,0 +1,7 @@
+# generated or local: runs hold pages, screenshots and logs with local paths
+runs/
+judge-*/
+egui-target/
+results/key-*.json
+results/rescore-*.json
+__pycache__/

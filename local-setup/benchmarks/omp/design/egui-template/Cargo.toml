@@ -1,0 +1,8 @@
+[package]
+name = "pulse"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+egui = "0.33"
+eframe = { version = "0.33", default-features = false, features = ["glow", "wayland", "x11", "default_fonts"] }

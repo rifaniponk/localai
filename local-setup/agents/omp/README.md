@@ -32,6 +32,9 @@ and the session in 124 s and 141 s: the same speed, within run-to-run noise (see
 
 ```sh
 cp config.yml models.yml APPEND_SYSTEM.md ~/.omp/agent/
+mkdir -p ~/.omp/agent/skills ~/.omp/agent/tools
+cp -r skills/ui-design ~/.omp/agent/skills/   # UI design skill (see "UI design" below)
+cp tools/ui_audit.ts ~/.omp/agent/tools/      # lets omp render and check a page it built
 export STRATA_API_KEY='...'      # the server's key (models.yml names this variable)
 omp models strata                # should list qwen3.8-flash-next-iq3_s, 262K context, 16K output
 ```
@@ -59,6 +62,37 @@ messages it already sent. Measured step by step (each against the setup of its t
 
 Tried and not kept: turning off the todo tool (slower, one failure), the "precise coding" sampling set
 (temperature 0.6, top_p 0.95: no better than presence penalty 0 alone).
+
+## UI design
+
+The speed tuning above doesn't touch how omp's pages and apps look. A second set of changes does, measured with
+the [design benchmark](../../benchmarks/omp/design/README.md) (5 UI tasks x 2 runs, an automated audit, and a blind
+judge comparing screenshots). Results: [design SUMMARY](../../benchmarks/omp/design/results/SUMMARY.md).
+
+| | Before | After |
+|---|---|---|
+| blind judge, pairs won (8 web pages) | 3 | **5** |
+| blind judge, average score (1-10) | 6.0 | **7.0** |
+| audit issues, high / medium / low | 13 / 22 / 27 | **2 / 1 / 3** |
+| average time per run | 147 s | 220 s |
+| egui compile errors (2 apps, no compiler in the loop) | 11, 33 | 9, 1 |
+
+| Change | Where | Measured |
+|---|---|---|
+| `ui-design` skill: one design direction, tokens first, four themes, a CSS starter whose color pairs pass WCAG AA, inline SVG icons, page recipes (landing, dashboard, settings, mobile, list+detail), an SVG chart helper, and a compile-tested egui starter module | `skills/ui-design/` | on its own: low issues 27 -> 3 and font sizes per page 10 -> 7, but a 4-4 tie with the judge: omp got more ambitious and, unable to see the page, shipped new visual bugs |
+| a trigger line, so the small model opens the skill before UI work | `APPEND_SYSTEM.md` | without it the skill depends on the model picking it from the list |
+| `ui_audit` tool: renders an `.html` file inside the working folder in headless Chrome at 1440 and 390 px and returns a defect report plus real phone and desktop screenshots | `tools/ui_audit.ts`, `skills/ui-design/scripts/ui-audit.mjs` | with vision: 0 high and 0 medium issues on all 8 pages, judge 6-2 |
+| vision on | `models.yml` (`input: [text, image]`) | the server accepts images; with a checklist the model found real defects in a screenshot in ~15 s |
+| review budget: at most 2 audits, one screenshot review, small `edit`s instead of rewriting the file, stop when clean | `skills/ui-design/SKILL.md` | 702 s -> 220 s per run, time limits 7 -> 1 of 10, quality about the same |
+
+How omp uses it: it reads `SKILL.md`, picks a theme, builds from the starter, then runs `ui_audit`, fixes every
+high and medium item, looks at the screenshots and fixes what it sees, and audits once more. With a shell instead of
+the tool it runs `node ~/.omp/agent/skills/ui-design/scripts/ui-audit.mjs index.html --views .ui-audit`; for egui
+apps it builds with `cargo` and screenshots the window with `scripts/egui-shot.py` (Xvfb).
+
+Not benchmarked yet: two rules added after the last run (don't write test scripts for a page, the audit is the check;
+never finish with a high issue open). The audit tool needs Node 22+ and Chrome; `egui-shot.py` needs Xvfb and
+ImageMagick.
 
 ## Notes
 

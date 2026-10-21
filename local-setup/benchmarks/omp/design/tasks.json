@@ -1,0 +1,7 @@
+{
+  "landing": "Build a landing page for Tidepool, a tool that helps small product teams collect and organize customer feedback. Put everything in a single index.html file in the current directory.",
+  "dashboard": "Make an analytics dashboard web page for a small online store: revenue, orders, conversion, top products and recent orders. Use realistic fake data. Put everything in a single index.html file in the current directory.",
+  "settings": "Create the settings page of a web app with sections for profile, notifications, security and billing. Put everything in a single index.html file in the current directory.",
+  "mobile": "Build a mobile web screen for a habit tracker: the user sees today's habits, can check them off, and sees their streaks. Put everything in a single index.html file in the current directory.",
+  "egui": "This is a Rust project using egui/eframe 0.33. Replace src/main.rs with a desktop app called Pulse for monitoring a team's web services: a list of services with their status and response time, a detail view for the selected service with a response-time chart and recent incidents, and a way to add or pause a service. Use realistic fake data that changes over time. Don't add dependencies."
+}

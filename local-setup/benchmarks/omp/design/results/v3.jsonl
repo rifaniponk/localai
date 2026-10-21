@@ -1,0 +1,10 @@
+{"cond": "v3", "task": "landing", "sample": 1, "seconds": 305, "rc": 0, "timed_out": false, "has_page": true, "high": 0, "med": 0, "low": 0, "console_errors": 0, "kinds": [], "font_sizes": 8}
+{"cond": "v3", "task": "landing", "sample": 2, "seconds": 900, "rc": null, "timed_out": true, "has_page": true, "high": 0, "med": 0, "low": 0, "console_errors": 0, "kinds": [], "font_sizes": 8}
+{"cond": "v3", "task": "dashboard", "sample": 1, "seconds": 900, "rc": null, "timed_out": true, "has_page": true, "high": 0, "med": 0, "low": 1, "console_errors": 0, "kinds": ["low:scroll-nav"], "font_sizes": 6}
+{"cond": "v3", "task": "dashboard", "sample": 2, "seconds": 900, "rc": null, "timed_out": true, "has_page": true, "high": 0, "med": 0, "low": 0, "console_errors": 0, "kinds": [], "font_sizes": 6}
+{"cond": "v3", "task": "settings", "sample": 1, "seconds": 191, "rc": 0, "timed_out": false, "has_page": true, "high": 0, "med": 0, "low": 1, "console_errors": 0, "kinds": ["low:scroll-nav"], "font_sizes": 7}
+{"cond": "v3", "task": "settings", "sample": 2, "seconds": 900, "rc": null, "timed_out": true, "has_page": true, "high": 0, "med": 0, "low": 0, "console_errors": 0, "kinds": [], "font_sizes": 8}
+{"cond": "v3", "task": "mobile", "sample": 1, "seconds": 900, "rc": null, "timed_out": true, "has_page": true, "high": 0, "med": 0, "low": 0, "console_errors": 0, "kinds": [], "font_sizes": 7}
+{"cond": "v3", "task": "mobile", "sample": 2, "seconds": 900, "rc": null, "timed_out": true, "has_page": true, "high": 0, "med": 0, "low": 0, "console_errors": 0, "kinds": [], "font_sizes": 7}
+{"cond": "v3", "task": "egui", "sample": 1, "seconds": 900, "rc": null, "timed_out": true, "compiles": false, "compile_errors": 3}
+{"cond": "v3", "task": "egui", "sample": 2, "seconds": 219, "rc": 0, "timed_out": false, "compiles": false, "compile_errors": 3}

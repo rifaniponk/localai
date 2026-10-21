@@ -18,7 +18,7 @@ providers:
       - id: qwen3.8-flash-next-iq3_s
         name: Qwen3.8-Flash-Next (Strata, local)
         reasoning: true
-        input: [text]
+        input: [text, image]
         contextWindow: 262144   # the server's --max-context
         maxTokens: 16384        # 4096 can cut off a large file write
         thinking:

@@ -1,0 +1,3 @@
+{"cond": "v4", "task": "landing", "sample": 1, "seconds": 476, "rc": 0, "timed_out": false, "has_page": true, "high": 0, "med": 0, "low": 0, "console_errors": 0, "kinds": [], "font_sizes": 8}
+{"cond": "v4", "task": "landing", "sample": 2, "seconds": 900, "rc": null, "timed_out": true, "has_page": true, "high": 0, "med": 0, "low": 0, "console_errors": 0, "kinds": [], "font_sizes": 9}
+{"cond": "v4", "task": "dashboard", "sample": 1, "seconds": 900, "rc": null, "timed_out": true, "has_page": true, "high": 0, "med": 0, "low": 1, "console_errors": 0, "kinds": ["low:scroll-nav"], "font_sizes": 6}

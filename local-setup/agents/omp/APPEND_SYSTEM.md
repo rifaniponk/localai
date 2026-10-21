@@ -6,3 +6,5 @@
 - If the same check fails twice, stop editing: re-read the request and the full function, find the actual cause,
   then fix it in one edit.
 - Keep the final answer short: what changed and where.
+- UI work (HTML/CSS/JS pages, web apps, dashboards, mobile screens, egui apps, or "make it look better"): before
+  writing any UI code, read `~/.omp/agent/skills/ui-design/SKILL.md` and follow its steps and reference files.

@@ -4,6 +4,8 @@ Runs real coding tasks through `omp -p` against the local Strata server and chec
 every omp setting is measured before it is adopted: pass rate, wall time, model calls, tokens, cache hits and side
 requests. Results: [results/SUMMARY.md](results/SUMMARY.md).
 
+How good omp's user interfaces look is measured separately, by the [design benchmark](design/README.md).
+
 ## Tasks
 
 `make_tasks.py` writes `tasks/<name>/`: a small git repo, a prompt, and `check.py`, which exits 0 only when the task
