@@ -1,0 +1,18 @@
+{
+  "name": "Math Survivor 2",
+  "slug": "math-survivor2",
+  "description": "Calculate. Shoot. Survive. Monsters carry math formulas — type the answer and an armored scout blasts them. Endless arcade survival, grade 1-6 curriculum.",
+  "stack": "vanilla",
+  "model": "qwen-3.8",
+  "tags": [
+    "edu game",
+    "web",
+    "three.js",
+    "pbr"
+  ],
+  "status": "live",
+  "created": "2026-11-11",
+  "build": "",
+  "dist": ".",
+  "thumb": "thumb.png"
+}
