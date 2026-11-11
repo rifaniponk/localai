@@ -65,6 +65,8 @@ export class Engine {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.12;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this._qTier = 0; // auto quality reduction for weak devices
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.Fog(0x101426, 22, 52);
@@ -78,13 +80,38 @@ export class Engine {
     this.hemi = new THREE.HemisphereLight(0x5a6a9a, 0x14182a, 1.1);
     this.key = new THREE.DirectionalLight(0x8fa8ff, 2.6);
     this.key.position.set(3, 10, 6);
+    this.key.castShadow = true;
+    this.key.shadow.mapSize.set(2048, 2048);
+    this.key.shadow.camera.left = -14;
+    this.key.shadow.camera.right = 14;
+    this.key.shadow.camera.top = 16;
+    this.key.shadow.camera.bottom = -8;
+    this.key.shadow.camera.near = 1;
+    this.key.shadow.camera.far = 38;
+    this.key.shadow.bias = -0.0004;
+    this.key.shadow.normalBias = 0.025;
+
+    this.fill = new THREE.DirectionalLight(0x9bb6d6, 0.55);
+    this.fill.position.set(-7, 5, 4);
+
     this.rim = new THREE.PointLight(0x5a7bff, 1.6, 26);
     this.rim.position.set(0, 4, -10);
-    this.scene.add(this.amb, this.hemi, this.key, this.rim);
+    this.scene.add(this.amb, this.hemi, this.key, this.fill, this.rim);
 
-    this.floorMat = new THREE.MeshPhysicalMaterial({ map: AF.floorTex("#2a2f45", "#3d4463"), roughness: 0.82, metalness: 0.12, clearcoat: 0.18, envMapIntensity: 0.8 });
+    const floorT = AF.floorTex("#2a2f45", "#3d4463");
+    this.floorMat = new THREE.MeshPhysicalMaterial({
+      map: floorT,
+      bumpMap: floorT,
+      bumpScale: 0.035,
+      roughness: 0.68,
+      metalness: 0.16,
+      clearcoat: 0.24,
+      clearcoatRoughness: 0.35,
+      envMapIntensity: 0.9
+    });
     this.floor = new THREE.Mesh(new THREE.PlaneGeometry(13, 24), this.floorMat);
     this.floor.rotation.x = -Math.PI / 2;
+    this.floor.receiveShadow = true;
     this.floor.position.z = -1;
     this.scene.add(this.floor);
 
@@ -113,6 +140,7 @@ export class Engine {
     this.hero.position.set(0, 0, HERO_Z);
     this.hero.rotation.y = Math.PI; // face the incoming enemies (model front is +z)
     this.scene.add(this.hero);
+    this._shadowify(this.hero);
     this.heroAura = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.06, 8, 28), new THREE.MeshStandardMaterial({ color: 0xffd35c, emissive: 0xffb02a, emissiveIntensity: 1.4, transparent: true, opacity: 0 }));
     this.heroAura.rotation.x = Math.PI / 2;
     this.heroAura.position.set(0, 0.2, HERO_Z);
@@ -152,6 +180,16 @@ export class Engine {
         life: 1, decay: 1.4 + Math.random(), r: c.r, g: c.g, b: c.b
       });
     }
+  }
+
+  _shadowify(group) {
+    group.traverse(o => {
+      if (o.isMesh && o.material && !o.material.transparent) {
+        o.castShadow = true;
+        o.receiveShadow = true;
+      }
+    });
+    return group;
   }
 
   // ---------------- run state ----------------
@@ -313,6 +351,7 @@ export class Engine {
     built.group.position.set(LANES[lane] + (Math.random() - 0.5) * 0.7, 0, SPAWN_Z - Math.random() * 1.5);
     built.group.rotation.y = Math.PI; // face hero
     this.scene.add(built.group);
+    this._shadowify(built.group);
     const elite = tier >= 4 && Math.random() < 0.18;
     const t = {
       kind: "enemy", type, group: built.group, parts: built.parts,
@@ -344,6 +383,7 @@ export class Engine {
     const lane = this._freeLane();
     built.group.position.set(LANES[lane] + (Math.random() - 0.5) * 0.6, 0, SPAWN_Z + 1 + Math.random() * 3);
     this.scene.add(built.group);
+    this._shadowify(built.group);
     const t = { kind: "powerup", type, group: built.group, parts: built.parts, q, answer: q.answer, lane, targeted: false, dying: false, deathT: 0, speed: 0.42, ttl: 18, bob: Math.random() * 6.28 };
     this._register(t);
   }
@@ -356,6 +396,7 @@ export class Engine {
     built.group.position.set(0, 0, SPAWN_Z - 1);
     built.group.rotation.y = Math.PI;
     this.scene.add(built.group);
+    this._shadowify(built.group);
     const t = {
       kind: "boss", type: "dragon", group: built.group, parts: built.parts,
       q, answer: q.answer, lane: 2, targeted: false, dying: false, deathT: 0,
@@ -660,11 +701,14 @@ export class Engine {
     }
     this.biome = AF.buildBiome(i);
     this.scene.add(this.biome.group);
+    this._shadowify(this.biome.group);
     this.torchLights = this.biome.torchLights;
   }
   _swapFloorTex(s) {
     const old = this.floorMat.map;
-    this.floorMat.map = AF.floorTex(s.floor, s.floorLine);
+    const t = AF.floorTex(s.floor, s.floorLine);
+    this.floorMat.map = t;
+    this.floorMat.bumpMap = t;
     this.floorMat.needsUpdate = true;
     if (old) old.dispose(); // no texture leak across stages
   }
@@ -677,11 +721,12 @@ export class Engine {
       this.amb.color.setHex(s.amb);
       this.hemi.color.setHex(s.key);
       this.key.color.setHex(s.key);
+      this.fill.color.setHex(s.key);
       this.rim.color.setHex(s.accent);
       this._swapFloorTex(s);
       this._swapBiome(i);
     } else {
-      this.stageLerp = { from: { fog: this.scene.fog.color.clone(), amb: this.amb.color.clone(), key: this.key.color.clone(), rim: this.rim.color.clone(), hemi: this.hemi.color.clone() }, to: i, t: 0 };
+      this.stageLerp = { from: { fog: this.scene.fog.color.clone(), amb: this.amb.color.clone(), key: this.key.color.clone(), rim: this.rim.color.clone(), hemi: this.hemi.color.clone(), fill: this.fill.color.clone() }, to: i, t: 0 };
       this._flashTransition();
     }
     this.onStage && this.onStage(s.name);
@@ -704,6 +749,7 @@ export class Engine {
     this.amb.color.copy(L.from.amb).lerp(new THREE.Color(s.amb), k);
     this.hemi.color.copy(L.from.hemi).lerp(new THREE.Color(s.key), k);
     this.key.color.copy(L.from.key).lerp(new THREE.Color(s.key), k);
+    this.fill.color.copy(L.from.fill).lerp(new THREE.Color(s.key), k);
     this.rim.color.copy(L.from.rim).lerp(new THREE.Color(s.accent), k);
     if (L.t >= 1) {
       this._swapFloorTex(s);
