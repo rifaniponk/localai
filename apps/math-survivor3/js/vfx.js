@@ -114,19 +114,24 @@ class FloatTextPool {
 /* particle field */
 const PARTICLE_VS = `
 attribute float aSize; attribute vec3 aColor; attribute float aLife;
-varying vec3 vColor; varying float vLife;
+varying vec3 vColor; varying float vLife; varying float vNear;
 void main() {
   vColor = aColor; vLife = aLife;
   vec4 mv = modelViewMatrix * vec4( position, 1.0 );
-  gl_PointSize = aSize * ( 140.0 / -mv.z ) * ( 0.35 + 0.65 * vLife );
+  float dist = max( -mv.z, 0.4 );
+  /* shrink + fade particles that fly into the near-camera space
+     (a 1/dist point size here used to blow up into a screen-filling ball) */
+  float nearFade = smoothstep( 0.6, 2.2, dist );
+  vNear = nearFade;
+  gl_PointSize = min( aSize * ( 140.0 / dist ) * ( 0.35 + 0.65 * vLife ) * nearFade, 130.0 );
   gl_Position = projectionMatrix * mv;
 }`;
 const PARTICLE_FS = `
-varying vec3 vColor; varying float vLife;
+varying vec3 vColor; varying float vLife; varying float vNear;
 void main() {
   float d = length( gl_PointCoord - 0.5 );
   if ( d > 0.5 ) discard;
-  float a = ( 1.0 - d * 2.0 ) * smoothstep( 0.0, 0.18, vLife );
+  float a = ( 1.0 - d * 2.0 ) * smoothstep( 0.0, 0.18, vLife ) * vNear;
   gl_FragColor = vec4( vColor * ( 1.5 + vLife ), a );
 }`;
 
@@ -272,10 +277,10 @@ class Projectiles {
       const mat = new THREE.MeshBasicMaterial({ color: 0xbffbff });
       const core = new THREE.Mesh(geo, mat);
       const glow = new THREE.Sprite(new THREE.SpriteMaterial({
-        map: vfx.dotTex, color: 0x7df9ff, transparent: true,
+        map: vfx.dotTex, color: 0x7df9ff, transparent: true, opacity: 0.8,
         blending: THREE.AdditiveBlending, depthWrite: false,
       }));
-      glow.scale.set(1.6, 1.6, 1);
+      glow.scale.set(0.7, 0.7, 1);
       core.add(glow);
       core.visible = false; scene.add(core);
       this.items.push({ m: core, vel: new THREE.Vector3(), life: 0, target: null, onHit: null, radius: 0.9 });
@@ -291,7 +296,7 @@ class Projectiles {
     it.m.visible = true;
     V3.subVectors(target ? target.aimPoint() : V3B.set(0, 2, 0), from).normalize().multiplyScalar(speed);
     it.vel.copy(V3);
-    this.vfx.particles.spawn(from, V3.set(0, 0.5, 0), new THREE.Color(color), { size: 9, dur: 0.3 });
+    this.vfx.particles.spawn(from, V3.set(0, 0.5, 0), new THREE.Color(color), { size: 2.4, dur: 0.22 });
   }
   update(dt) {
     for (const it of this.items) {
@@ -303,9 +308,9 @@ class Projectiles {
       }
       it.m.position.addScaledVector(it.vel, dt);
       it.m.scale.setScalar(0.9 + 0.3 * Math.sin(performance.now() * 0.02));
-      // trail
+      // trail — thin tracer, small enough to never flood the screen
       this.vfx.particles.spawn(it.m.position, V3.set(0, 0, 0),
-        new THREE.Color(it.m.material.color), { size: 5, dur: 0.35, drag: 4 });
+        new THREE.Color(it.m.material.color), { size: 1.8, dur: 0.2, drag: 4 });
       if (it.target && it.target.alive) {
         V3.subVectors(it.target.aimPoint(), it.m.position);
         if (V3.length() < it.radius + 0.35) {
@@ -348,8 +353,8 @@ export class Vfx {
   }
 
   killBurst(pos, color) {
-    this.particles.burst(pos, color, 30, { size: 7, dur: 0.8, drag: 1.6 });
-    this.rings.spawn(pos, color, 2.6, 0.4);
+    this.particles.burst(pos, color, 12, { size: 2.0, dur: 0.6, drag: 1.6 });
+    this.rings.spawn(pos, color, 2.0, 0.4);
     this.addTrauma(0.32);
     this.hitStop(0.07);
   }

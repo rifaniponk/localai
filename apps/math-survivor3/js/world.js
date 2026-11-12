@@ -8,6 +8,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 export const ARENA_R = 14.2;
 
@@ -117,9 +118,25 @@ export class World {
         { type: THREE.UnsignedByteType }));
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.bloom = new UnrealBloomPass(
-      new THREE.Vector2(container.clientWidth, container.clientHeight), 0.9, 0.75, 0.42);
+      new THREE.Vector2(container.clientWidth, container.clientHeight), 0.45, 0.5, 0.8);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
+    /* 8-bit LDR target quantizes smooth gradients into visible bands —
+       break the steps with a tiny display-space dither written to screen */
+    this.composer.addPass(new ShaderPass({
+      uniforms: { tDiffuse: { value: null } },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }`,
+      fragmentShader: `
+        uniform sampler2D tDiffuse; varying vec2 vUv;
+        float dhash( vec2 p ){ return fract( 43758.5453 * sin( dot( p, vec2( 12.9898, 78.233 ) ) ) ); }
+        void main() {
+          vec4 c = texture2D( tDiffuse, vUv );
+          c.rgb += ( dhash( gl_FragCoord.xy * 0.0173 + 3.3 ) - 0.5 ) * ( 2.4 / 255.0 );
+          gl_FragColor = c;
+        }`,
+    }));
 
     this._buildLights();
     this._buildArena();

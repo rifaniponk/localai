@@ -48,6 +48,16 @@ const GEO = {
   torus: new THREE.TorusGeometry(0.55, 0.07, 8, 28),
   core: new THREE.IcosahedronGeometry(1.7, 1),
   ringBig: new THREE.TorusGeometry(2.4, 0.18, 8, 48),
+  botBody: new THREE.SphereGeometry(0.42, 16, 12),
+  lens: new THREE.SphereGeometry(0.15, 12, 10),
+  botLeg: new THREE.CapsuleGeometry(0.045, 0.26, 3, 6),
+  crabBody: new THREE.BoxGeometry(0.9, 0.5, 0.7),
+  claw: new THREE.BoxGeometry(0.24, 0.2, 0.34),
+  visor: new THREE.BoxGeometry(0.52, 0.1, 0.1),
+  shield: new THREE.BoxGeometry(0.82, 0.62, 0.08),
+  dome: new THREE.SphereGeometry(0.38, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.62),
+  legTube: new THREE.CapsuleGeometry(0.04, 0.42, 3, 6),
+  spiderLeg: new THREE.CapsuleGeometry(0.06, 0.7, 3, 6),
 };
 
 const MAT = {
@@ -59,6 +69,14 @@ const MAT = {
   metal: new THREE.MeshStandardMaterial({ color: 0x241d38, metalness: 0.92, roughness: 0.28, envMapIntensity: 1.3 }),
   titan: new THREE.MeshStandardMaterial({ color: 0x1c1430, metalness: 0.85, roughness: 0.35, envMapIntensity: 1.2 }),
   titanCore: new THREE.MeshStandardMaterial({ color: 0x180b14, emissive: 0xff5f6d, emissiveIntensity: 2.0, roughness: 0.4 }),
+  /* reference-sheet palette: white units, cyan optics, yellow accents */
+  eWhite: new THREE.MeshStandardMaterial({ color: 0xeef1f6, metalness: 0.4, roughness: 0.42, envMapIntensity: 1.0 }),
+  eMetal: new THREE.MeshStandardMaterial({ color: 0x5f6b7a, metalness: 0.85, roughness: 0.35, envMapIntensity: 1.1 }),
+  eLens: new THREE.MeshStandardMaterial({ color: 0x061418, emissive: 0x06b6d4, emissiveIntensity: 2.8, roughness: 0.3 }),
+  eYellow: new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: 0.35, roughness: 0.45 }),
+  ePurple: new THREE.MeshStandardMaterial({ color: 0x45306b, metalness: 0.6, roughness: 0.4, envMapIntensity: 1.2 }),
+  eRed: new THREE.MeshStandardMaterial({ color: 0x1a0a10, emissive: 0xff3d4e, emissiveIntensity: 2.4, roughness: 0.4 }),
+  eOrange: new THREE.MeshStandardMaterial({ color: 0xff7a3d, metalness: 0.4, roughness: 0.45 }),
 };
 
 /* =================================================================== */
@@ -216,6 +234,12 @@ function hoverUpdate(e, dt, game, dead) {
   e.body.rotation.x = Math.sin(t * 1.3) * 0.3;
 }
 
+/* hover animation + drift toward the hero — shardlings stay a real threat */
+function hoverSeek(e, dt, game, dead) {
+  hoverUpdate(e, dt, game, dead);
+  if (!dead) seek(e, dt);
+}
+
 function seek(e, dt, speedMul = 1) {
   const g = e.group;
   const hero = e.mgr.game.hero.pos;
@@ -228,7 +252,7 @@ function seek(e, dt, speedMul = 1) {
 
 const DEFS = {
   shardling: {
-    hp: 1, radius: 0.85, speed: 2.6, edgeColor: 0xffc46b, aimY: 1.0,
+    hp: 1, radius: 0.85, speed: 2.0, edgeColor: 0xffc46b, aimY: 1.0,
     pickSpawn() {
       const a = Math.random() * Math.PI * 2;
       const r = ARENA_R * (0.55 + Math.random() * 0.4);
@@ -236,13 +260,22 @@ const DEFS = {
     },
     build(e) {
       const g = new THREE.Group();
-      const shell = new THREE.Mesh(GEO.octa, MAT.shard);
-      const inner = new THREE.Mesh(GEO.inner, MAT.ember);
-      inner.scale.setScalar(1.4);
-      g.add(shell, inner);
+      const shell = new THREE.Mesh(GEO.botBody, MAT.eWhite);
+      shell.position.y = 0.66;
+      const lens = new THREE.Mesh(GEO.lens, MAT.eLens);
+      lens.position.set(0, 0.66, 0.36);
+      lens.scale.set(1, 1, 0.55);
+      g.add(shell, lens);
+      e.botLegs = [];
+      for (const s2 of [-1, 1]) {
+        const leg = new THREE.Mesh(GEO.botLeg, MAT.eMetal);
+        leg.position.set(s2 * 0.17, 0.28, 0);
+        g.add(leg);
+        e.botLegs.push(leg);
+      }
       return g;
     },
-    update: hoverUpdate,
+    update: hoverSeek,
   },
 
   golem: {
@@ -254,14 +287,18 @@ const DEFS = {
     },
     build(e) {
       const g = new THREE.Group();
-      const torso = new THREE.Mesh(GEO.box, MAT.stone);
-      torso.position.y = 0.6;
+      const torso = new THREE.Mesh(GEO.box, MAT.ePurple);
+      torso.position.y = 0.62;
       g.add(torso);
+      const core = new THREE.Mesh(GEO.lens, MAT.eRed);
+      core.position.set(0, 0.68, 0.58);
+      core.scale.setScalar(1.25);
+      g.add(core);
       e.armorPlates = [];
       for (let i = 0; i < 4; i++) {
-        const p = new THREE.Mesh(GEO.plate, MAT.armor);
+        const p = new THREE.Mesh(GEO.plate, MAT.eWhite);
         const a = (i / 4) * Math.PI * 2;
-        p.position.set(Math.cos(a) * 0.62, 0.65, Math.sin(a) * 0.62);
+        p.position.set(Math.cos(a) * 0.64, 0.67, Math.sin(a) * 0.64);
         p.rotation.y = -a;
         g.add(p);
         e.armorPlates.push(p);
@@ -286,7 +323,7 @@ const DEFS = {
   },
 
   wisp: {
-    hp: 1, radius: 0.7, speed: 0, edgeColor: 0xa085ff, aimY: 1.2, ranged: false,
+    hp: 1, radius: 0.7, speed: 0, edgeColor: 0x7df0ff, aimY: 1.2, ranged: false,
     pickSpawn() {
       const a = Math.random() * Math.PI * 2;
       const r = ARENA_R * (0.7 + Math.random() * 0.25);
@@ -294,14 +331,27 @@ const DEFS = {
     },
     build(e) {
       const g = new THREE.Group();
-      const orb = new THREE.Mesh(GEO.sphere, MAT.wisp);
-      orb.scale.setScalar(1.4);
-      g.add(orb);
+      const shell = new THREE.Mesh(GEO.crabBody, MAT.eWhite);
+      shell.position.y = 0.55;
+      g.add(shell);
+      const visor = new THREE.Mesh(GEO.visor, MAT.eLens);
+      visor.position.set(0, 0.64, 0.37);
+      g.add(visor);
+      const shield = new THREE.Mesh(GEO.shield, MAT.eMetal);
+      shield.position.set(0, 0.5, 0.5);
+      g.add(shield);
+      e.claws = [];
+      for (const s2 of [-1, 1]) {
+        const claw = new THREE.Mesh(GEO.claw, MAT.eYellow);
+        claw.position.set(s2 * 0.64, 0.34, 0.34);
+        g.add(claw);
+        e.claws.push(claw);
+      }
       const glow = new THREE.Sprite(new THREE.SpriteMaterial({
-        color: 0xa085ff, transparent: true, opacity: 0.5,
+        color: 0x06b6d4, transparent: true, opacity: 0.22,
         blending: THREE.AdditiveBlending, depthWrite: false,
       }));
-      glow.scale.set(2.2, 2.2, 1);
+      glow.scale.set(1.8, 1.8, 1);
       g.add(glow);
       return g;
     },
@@ -309,24 +359,26 @@ const DEFS = {
       if (dead) { e.body.rotation.y += dt; return; }
       const t = performance.now() * 0.001 + e.id;
       e.group.position.y = 1.1 + Math.sin(t * 3) * 0.15;
+      const heroP = e.mgr.game.hero.pos;
+      e.body.rotation.y = Math.atan2(heroP.x - e.group.position.x, heroP.z - e.group.position.z);
       e.hopT = (e.hopT ?? 1.2) - dt;
       if (e.hopT <= 0) {
         e.hopT = 1.6 - Math.min(0.8, e.mgr.game.wave * 0.03);
         const g = e.group, hero = e.mgr.game.hero.pos;
-        e.mgr.vfx.spawnRing(g.position, 0xa085ff, 1.6, 0.4);
+        e.mgr.vfx.spawnRing(g.position, 0x06b6d4, 1.6, 0.4);
         const dx = hero.x - g.position.x, dz = hero.z - g.position.z;
         const d = Math.hypot(dx, dz) || 1;
         const step = Math.min(d, 2.8);
         g.position.x += (dx / d) * step;
         g.position.z += (dz / d) * step;
-        e.mgr.vfx.spawnRing(g.position, 0xa085ff, 1.6, 0.4);
+        e.mgr.vfx.spawnRing(g.position, 0x06b6d4, 1.6, 0.4);
         e.mgr.audio.fx.dash();
       }
     },
   },
 
   sentinel: {
-    hp: 1, radius: 1.0, speed: 1.6, edgeColor: 0xff5f6d, aimY: 1.4, ranged: true,
+    hp: 1, radius: 1.0, speed: 1.6, edgeColor: 0x7df0ff, aimY: 1.4, ranged: true,
     pickSpawn() {
       const a = Math.random() * Math.PI * 2;
       const r = ARENA_R * (0.85 + Math.random() * 0.12);
@@ -334,11 +386,22 @@ const DEFS = {
     },
     build(e) {
       const g = new THREE.Group();
-      const ring = new THREE.Mesh(GEO.torus, MAT.metal);
-      ring.position.y = 1.1;
-      const core = new THREE.Mesh(GEO.sphere, MAT.titanCore);
-      core.position.y = 1.1; core.scale.setScalar(1.1);
-      g.add(ring, core);
+      const dome = new THREE.Mesh(GEO.dome, MAT.eWhite);
+      dome.position.y = 0.85; dome.scale.set(1, 1.25, 1);
+      g.add(dome);
+      const core = new THREE.Mesh(GEO.lens, MAT.eLens);
+      core.position.set(0, 0.95, 0.3); core.scale.setScalar(1.3);
+      g.add(core);
+      const ring = new THREE.Mesh(GEO.torus, MAT.eMetal);
+      ring.position.y = 0.95; ring.scale.setScalar(0.6);
+      g.add(ring);
+      for (let i = 0; i < 3; i++) {
+        const a = (i / 3) * Math.PI * 2;
+        const leg = new THREE.Mesh(GEO.legTube, MAT.eMetal);
+        leg.position.set(Math.cos(a) * 0.34, 0.32, Math.sin(a) * 0.34);
+        leg.rotation.z = Math.cos(a) * 0.5; leg.rotation.x = -Math.sin(a) * 0.5;
+        g.add(leg);
+      }
       e.ring = ring; e.core = core;
       return g;
     },
@@ -366,7 +429,7 @@ const DEFS = {
         e.core.material.emissiveIntensity = 2.0 + k * 4;
         if (Math.random() < dt * 8 * k) {
           V.copy(g.position); V.y = 1.1;
-          e.mgr.vfx.particles.spawn(V, new THREE.Vector3(0, 1.5, 0), new THREE.Color(0xff5f6d), { size: 5, dur: 0.3 });
+          e.mgr.vfx.particles.spawn(V, new THREE.Vector3(0, 1.5, 0), new THREE.Color(0x06b6d4), { size: 5, dur: 0.3 });
         }
         if (k >= 1) {
           e.state = 'active';
@@ -375,7 +438,7 @@ const DEFS = {
           e.core.material.emissiveIntensity = 2.0;
           const from = g.position.clone().setY(1.1);
           const to = hero.clone().setY(0.8);
-          e.mgr.vfx.beam(from, to, 0xff5f6d, 0.4, 2.5);
+          e.mgr.vfx.beam(from, to, 0x06b6d4, 0.4, 2.5);
           e.mgr.audio.fx.hurt();
           game.onHeroHit(e, true);
         }
@@ -393,21 +456,33 @@ const DEFS = {
     },
     build(e) {
       const g = new THREE.Group();
-      const core = new THREE.Mesh(GEO.core, MAT.titan);
-      core.position.y = 1.9;
+      const shell = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.9, 1.9), MAT.eWhite);
+      shell.position.y = 1.9;
+      const accent = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.2, 2.0), MAT.eOrange);
+      accent.position.y = 2.32;
+      g.add(shell, accent);
       const heart = new THREE.Mesh(new THREE.IcosahedronGeometry(0.7, 1), MAT.titanCore);
-      heart.position.y = 1.9;
+      heart.position.set(0, 1.75, 0.98);
+      e.heart = heart;
+      g.add(heart);
+      e.legs = [];
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2;
+        const leg = new THREE.Mesh(GEO.spiderLeg, MAT.eMetal);
+        leg.position.set(Math.cos(a) * 1.15, 1.5, Math.sin(a) * 1.3);
+        leg.rotation.z = Math.cos(a) * 1.1; leg.rotation.x = -Math.sin(a) * 1.1;
+        g.add(leg);
+        e.legs.push(leg);
+      }
       e.rings = [];
       for (let i = 0; i < 3; i++) {
-        const r = new THREE.Mesh(GEO.ringBig, MAT.metal);
+        const r = new THREE.Mesh(GEO.ringBig, MAT.eMetal);
         r.position.y = 1.9;
         r.rotation.set(Math.random() * 1, Math.random() * 1, Math.random() * 1);
         r.scale.setScalar(1 - i * 0.18);
         g.add(r);
         e.rings.push(r);
       }
-      e.heart = heart;
-      g.add(core, heart);
       return g;
     },
     onSurvive(e) {

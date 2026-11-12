@@ -186,7 +186,7 @@ class Game {
       launched++;
     };
 
-    for (const m of matches) fireOne(m, 0x7df9ff);
+    for (const m of matches) fireOne(m, 0x06b6d4);
 
     /* twin lance: extra shots at random other monsters */
     const extras = this.enemies.list.filter(e => e.alive && !matches.includes(e));
@@ -401,7 +401,7 @@ class Game {
     if (k.w || k.arrowup) dz -= 1;
     if (this.hero.dash(dx, dz, this.bonus.swift)) {
       Audio.fx.dash();
-      this.vfx.spawnRing(this.hero.pos, 0x7df9ff, 2.2, 0.4);
+      this.vfx.spawnRing(this.hero.pos, 0x06b6d4, 2.2, 0.4);
     }
   }
 
@@ -412,7 +412,7 @@ class Game {
     UI.novaPulse();
     Audio.fx.nova();
     this.vfx.spawnRing(new THREE.Vector3(this.hero.pos.x, 0.1, this.hero.pos.z), 0xa085ff, 16, 0.9);
-    this.vfx.spawnRing(new THREE.Vector3(this.hero.pos.x, 0.1, this.hero.pos.z), 0x7df9ff, 11, 0.7);
+    this.vfx.spawnRing(new THREE.Vector3(this.hero.pos.x, 0.1, this.hero.pos.z), 0x06b6d4, 11, 0.7);
     this.vfx.addTrauma(0.5);
     for (const e of this.enemies.list) {
       if (!e.alive) continue;
