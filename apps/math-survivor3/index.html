@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Math Survivor 3 — solve the sigil on each monster, press Enter, and the Arcanum blasts them. PBR survival arena with waves, boons and the Calculus Titan.">
+  <title>Math Survivor 3 — Type the Answer. Blast the Math.</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230d0a1e'/><text x='50' y='72' font-size='56' text-anchor='middle' font-family='serif' fill='%237df9ff'>&#8721;</text></svg>">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./js/vendor/three.module.js",
+      "three/addons/": "./js/vendor/addons/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="stage"></div>
+
+  <!-- ===================== HUD ===================== -->
+  <div id="hud" class="hidden">
+
+    <div id="hud-top">
+      <div class="chip" id="wave-chip">
+        <span class="chip-label">WAVE</span>
+        <b id="wave-num">1</b>
+        <em id="wave-tier">TIER I</em>
+      </div>
+
+      <div id="shield-rack" title="Arcane shield">
+        <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+        <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+      </div>
+
+      <div id="score-stack">
+        <div class="chip right" id="score-chip">
+          <span class="chip-label">SCORE</span>
+          <b id="score-num">0</b>
+        </div>
+        <div id="combo-pill" class="hidden"><b id="combo-num">×1</b><span>COMBO</span></div>
+      </div>
+    </div>
+
+    <div id="banner" class="hidden">
+      <h2 id="banner-title">WAVE 1</h2>
+      <p id="banner-sub">the arena stirs</p>
+    </div>
+
+    <div id="toasts"></div>
+
+    <div id="console-wrap">
+      <div id="console">
+        <span id="console-glyph">&#8721;</span>
+        <div id="console-slots" aria-live="polite"><span class="slot ghost">?</span></div>
+        <span id="console-hint">ENTER&nbsp;=&nbsp;BLAST</span>
+      </div>
+      <div id="numpad" class="hidden">
+        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+        <button data-k="0">0</button><button data-k="-">&#8722;</button><button data-k="back">&#9003;</button>
+        <button data-k="enter" class="wide">&#9166; BLAST</button>
+      </div>
+    </div>
+
+    <div id="nova-ring" title="Arcane Nova (SPACE) — full meter">
+      <svg viewBox="0 0 72 72"><circle class="ring-bg" cx="36" cy="36" r="30"/><circle class="ring-fg" cx="36" cy="36" r="30"/></svg>
+      <span>&#10038;</span>
+    </div>
+
+    <div id="dash-hint">SHIFT&nbsp;=&nbsp;DASH</div>
+
+    <div id="vignette"></div>
+    <div id="flash"></div>
+  </div>
+
+  <!-- ===================== SCREENS ===================== -->
+  <section id="screen-title" class="screen">
+    <div class="screen-inner">
+      <p class="kicker">AN ARENA OF NUMBERS AWAITS</p>
+      <h1 class="logo">MATH<br><span>SURVIVOR</span> <em>III</em></h1>
+      <p class="lede">Monsters carry arithmetic sigils. <b>Type the answer</b> and press <kbd>ENTER</kbd> — the Arcanum finds every monster whose sigil matches and obliterates them. Hold the ring. Outlive the Calculus Titan.</p>
+      <div class="btn-row">
+        <button id="btn-start" class="btn primary">ENTER THE ARENA</button>
+        <button id="btn-how" class="btn ghostbtn">HOW IT WORKS</button>
+      </div>
+      <p class="bestline hidden" id="best-line">BEST&nbsp;RUN&nbsp;<b id="best-score">0</b></p>
+      <div class="credits"><span>PBR &middot; VFX &middot; WEBGL</span><span>waves &middot; boons &middot; one titan</span></div>
+    </div>
+  </section>
+
+  <section id="screen-how" class="screen hidden">
+    <div class="screen-inner">
+      <h2>HOW IT WORKS</h2>
+      <ul class="howlist">
+        <li><b>Type</b> the value of any sigil on the field into the console. Digits and <kbd>&#8722;</kbd>.</li>
+        <li><kbd>ENTER</kbd> fires the Arcanum — <b>every</b> monster matching your value dies at once.</li>
+        <li>Wrong value? The blast fizzles. <b>No harm but time lost.</b></li>
+        <li><kbd>WASD</kbd> / arrows — reposition inside the ring. <kbd>SHIFT</kbd> — dash. <kbd>SPACE</kbd> — Arcane Nova (panic push, needs a full meter).</li>
+        <li>Never let a monster touch you — each contact shatters one shield pip. Six pips. No healing between… well, almost none.</li>
+        <li>Every 4th wave: choose a <b>boon</b>. Tier V math wakes the Titan.</li>
+      </ul>
+      <button id="btn-back" class="btn ghostbtn">BACK</button>
+    </div>
+  </section>
+
+  <section id="screen-boon" class="screen hidden">
+    <div class="screen-inner">
+      <p class="kicker">WAVE CLEARED — CHOOSE A BOON</p>
+      <div id="boon-row"></div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="screen hidden">
+    <div class="screen-inner">
+      <h2>HELD BREATH</h2>
+      <div class="btn-row column">
+        <button id="btn-resume" class="btn primary">RESUME</button>
+        <button id="btn-quit" class="btn ghostbtn">ABANDON RUN</button>
+      </div>
+      <div class="sliderline">VOLUME <input id="vol-slider" type="range" min="0" max="100" value="80"></div>
+    </div>
+  </section>
+
+  <section id="screen-over" class="screen hidden">
+    <div class="screen-inner">
+      <p class="kicker" id="over-kicker">THE RING FALLS SILENT</p>
+      <h2 id="over-title">SURVIVOR DOWN</h2>
+      <div class="statgrid">
+        <div><span>SCORE</span><b id="ov-score">0</b></div>
+        <div><span>WAVES</span><b id="ov-waves">0</b></div>
+        <div><span>BEST COMBO</span><b id="ov-combo">0</b></div>
+        <div><span>ACCURACY</span><b id="ov-acc">0%</b></div>
+      </div>
+      <p id="ov-newbest" class="hidden">&#10024; NEW BEST RUN</p>
+      <button id="btn-again" class="btn primary">ONCE MORE</button>
+    </div>
+  </section>
+
+  <section id="screen-tut" class="hidden" >
+    <div class="tut-card">
+      <p><b>Type the answer</b> to any sigil, then <kbd>ENTER</kbd>.</p>
+      <p><kbd>WASD</kbd> move &nbsp;&middot;&nbsp; <kbd>SHIFT</kbd> dash &nbsp;&middot;&nbsp; <kbd>SPACE</kbd> nova</p>
+      <button id="btn-tut-ok" class="btn primary small">GOT IT</button>
+    </div>
+  </section>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

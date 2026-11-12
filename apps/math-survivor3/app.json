@@ -1,0 +1,19 @@
+{
+  "name": "Math Survivor 3",
+  "slug": "math-survivor3",
+  "description": "The arena remake. Solve the sigil on each monster, press Enter, and the Arcanum blasts them — PBR-lit survival with waves, boons and a Calculus Titan boss.",
+  "stack": "vanilla",
+  "model": "glm-5.3-flash",
+  "tags": [
+    "edu game",
+    "web",
+    "three.js",
+    "pbr",
+    "vfx"
+  ],
+  "status": "live",
+  "created": "2026-11-12",
+  "build": "",
+  "dist": ".",
+  "thumb": "thumb.png"
+}
