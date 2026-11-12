@@ -140,8 +140,8 @@ function hurtFlash() {
   vigT = setTimeout(() => { el.vignette.style.opacity = '0'; }, 180);
 }
 function killFlash() {
-  el.flash.style.opacity = '0.5';
-  setTimeout(() => { el.flash.style.opacity = '0'; }, 60);
+  el.flash.style.opacity = '0.2';
+  setTimeout(() => { el.flash.style.opacity = '0'; }, 45);
 }
 
 /* ---------------- nova ring ---------------- */

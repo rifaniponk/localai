@@ -13,103 +13,156 @@ export class Hero {
     this.root.scale.setScalar(1.35);
     scene.add(this.root);
 
-    const suit = new THREE.MeshStandardMaterial({
-      color: 0x232a4a, metalness: 0.85, roughness: 0.36, envMapIntensity: 1.1,
+    /* ---- palette from the reference sheet ---- */
+    const std = (color, rough = 0.55, metal = 0.12) =>
+      new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal, envMapIntensity: 0.9 });
+    const jacket = std(0x2563eb, 0.62, 0.15);          // primary jacket
+    const white  = std(0xf3f4f6, 0.5, 0.2);            // secondary armor
+    const pants  = std(0x1f2937, 0.75, 0.1);           // pants / base
+    const skin   = std(0xf2c9a3, 0.7, 0.05);           // face
+    const hairM  = std(0xeef0f8, 0.58, 0.1);           // silver hair
+    const darkM  = std(0x2a3049, 0.5, 0.55);           // gloves / grip / metal
+    const scarfM = new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.65, side: THREE.DoubleSide, envMapIntensity: 0.8 });
+    const soleM  = std(0xfbbf24, 0.5, 0.2);            // boot soles
+    const glowMat = new THREE.MeshStandardMaterial({   // cyan energy
+      color: 0x08111c, emissive: 0x06b6d4, emissiveIntensity: 2.6, roughness: 0.35, metalness: 0.2,
     });
-    const trim = new THREE.MeshStandardMaterial({
-      color: 0x101626, metalness: 0.9, roughness: 0.3,
-    });
-    const coreMat = new THREE.MeshStandardMaterial({
-      color: 0x0a0a14, emissive: 0x7df9ff, emissiveIntensity: 2.4,
-      metalness: 0.2, roughness: 0.4,
-    });
-    this.suit = suit; this.coreMat = coreMat;
-    this.mats = [suit, trim, coreMat];
+    this.suit = jacket; this.coreMat = glowMat;
+    this.mats = [jacket, white, pants, glowMat];
 
-    /* torso */
-    const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.34, 0.55, 6, 12), suit);
-    torso.position.y = 1.05; torso.castShadow = true;
-    this.root.add(torso);
-
-    /* chest core */
-    const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.12, 1), coreMat);
-    core.position.set(0, 1.25, 0.28);
-    this.root.add(core);
-    this.core = core;
-
-    /* head + visor */
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 12), trim);
-    head.position.y = 1.72; head.castShadow = true;
-    this.root.add(head);
-    const visor = new THREE.Mesh(
-      new THREE.BoxGeometry(0.3, 0.06, 0.1),
-      new THREE.MeshStandardMaterial({ color: 0x000, emissive: 0x7df9ff, emissiveIntensity: 3 }));
-    visor.position.set(0, 1.72, 0.2);
-    this.root.add(visor);
-
-    /* shoulder pads */
-    for (const s of [-1, 1]) {
-      const pad = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), trim);
-      pad.position.set(s * 0.42, 1.48, 0);
-      pad.scale.set(1, 0.6, 1); pad.castShadow = true;
-      this.root.add(pad);
-    }
-
-    /* cloak — simple flared cone, dark */
-    const cloakMat = new THREE.MeshStandardMaterial({
-      color: 0x141030, metalness: 0.2, roughness: 0.9, side: THREE.DoubleSide,
-    });
-    this.cloak = new THREE.Mesh(new THREE.ConeGeometry(0.62, 0.85, 14, 1, true), cloakMat);
-    this.cloak.position.y = 0.72;
-    this.root.add(this.cloak);
-    this.cloakMat = cloakMat;
-
-    /* legs */
-    const legGeo = new THREE.CapsuleGeometry(0.09, 0.3, 4, 8);
+    /* ---- legs: dark pants + white boots with yellow soles ---- */
+    const shinGeo = new THREE.CapsuleGeometry(0.11, 0.22, 4, 8);
     this.legs = [];
     for (const s of [-1, 1]) {
-      const leg = new THREE.Mesh(legGeo, suit);
-      leg.position.set(s * 0.18, 0.28, 0);
-      leg.castShadow = true;
+      const leg = new THREE.Group();
+      leg.position.set(s * 0.17, 0.32, 0);
+      const shin = new THREE.Mesh(shinGeo, pants);
+      shin.position.y = -0.05; shin.castShadow = true;
+      leg.add(shin);
+      const boot = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.14, 0.3), white);
+      boot.position.set(0, -0.16, 0.04); boot.castShadow = true;
+      leg.add(boot);
+      const sole = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.05, 0.32), soleM);
+      sole.position.set(0, -0.24, 0.04);
+      leg.add(sole);
       this.root.add(leg);
       this.legs.push(leg);
     }
 
-    /* staff-cannon on right side, pointing forward (+Z) */
+    /* ---- torso: blue jacket + white chest armor + cyan core ---- */
+    const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.5, 6, 12), jacket);
+    torso.position.y = 1.0; torso.castShadow = true;
+    this.root.add(torso);
+    const chest = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.3, 0.2), white);
+    chest.position.set(0, 1.12, 0.16); chest.castShadow = true;
+    this.root.add(chest);
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 10), glowMat);
+    core.position.set(0, 1.14, 0.28);
+    this.root.add(core);
+    this.core = core;
+
+    /* ---- belt + leather pouch ---- */
+    const belt = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.09, 0.3), darkM);
+    belt.position.set(0, 0.72, 0);
+    this.root.add(belt);
+    const pouch = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.16, 0.1), std(0x9a6b3f, 0.7, 0.05));
+    pouch.position.set(-0.26, 0.62, 0.08);
+    this.root.add(pouch);
+
+    /* ---- yellow scarf: wrap + flowing ribbon ---- */
+    const wrap = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.07, 8, 16), scarfM);
+    wrap.rotation.x = Math.PI / 2; wrap.position.y = 1.32;
+    this.root.add(wrap);
+    const ribbonGeo = new THREE.ConeGeometry(0.17, 0.75, 8, 1, true);
+    ribbonGeo.rotateX(-2.62);           // tip trails down-back; update() flaps it
+    this.cloak = new THREE.Mesh(ribbonGeo, scarfM);
+    this.cloak.position.set(0, 1.24, -0.3);
+    this.root.add(this.cloak);
+    this.cloakMat = scarfM;
+
+    /* ---- chibi head: tan face + silver spiky hair ---- */
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 18, 14), skin);
+    head.position.y = 1.62; head.castShadow = true;
+    this.root.add(head);
+    for (const s of [-1, 1]) {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), darkM);
+      eye.position.set(s * 0.1, 1.66, 0.24);
+      eye.scale.set(1, 1.2, 0.5);
+      this.root.add(eye);
+    }
+    const hairCap = new THREE.Mesh(
+      new THREE.SphereGeometry(0.29, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.62), hairM);
+    hairCap.position.y = 1.64; hairCap.rotation.x = -0.25;
+    this.root.add(hairCap);
+    const spikeGeo = new THREE.ConeGeometry(0.09, 0.42, 6);
+    const spikes = [[0, -0.5, -0.14, 0, -0.25, 0.06], [0.16, -0.9, -0.14, 0, -0.25, 0.06],
+      [-0.16, -0.9, -0.14, 0, -0.25, 0.06], [0.12, 0.5, 0.12, 0.9, 0.3, -0.02],
+      [-0.12, 0.5, 0.12, 0.9, 0.3, -0.02]];
+    for (const [sx, tilt, sz, rX, baseX, yOff] of spikes) {
+      const sp = new THREE.Mesh(spikeGeo, hairM);
+      sp.position.set(sx, 1.86 + yOff, sz);
+      sp.rotation.z = tilt; sp.rotation.x = rX;
+      sp.castShadow = true;
+      this.root.add(sp);
+    }
+
+    /* ---- shoulder pads (white armor) ---- */
+    for (const s of [-1, 1]) {
+      const pad = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), white);
+      pad.position.set(s * 0.36, 1.32, 0);
+      pad.scale.set(1, 0.65, 1); pad.castShadow = true;
+      this.root.add(pad);
+    }
+
+    /* ---- blaster: white body, dark grip, cyan barrel glow, pointing +Z ---- */
     this.cannon = new THREE.Group();
-    this.cannon.position.set(0.56, 1.28, 0.1);
+    this.cannon.position.set(0.42, 1.0, 0.12);
     this.root.add(this.cannon);
-    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.1, 1.1, 10), trim);
-    barrel.rotation.x = Math.PI / 2; barrel.position.z = 0.45;
-    barrel.castShadow = true;
-    this.cannon.add(barrel);
-    const tip = new THREE.Mesh(new THREE.OctahedronGeometry(0.13, 0), coreMat);
-    tip.position.z = 1.06;
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.24, 0.66), white);
+    body.position.z = 0.3; body.castShadow = true;
+    this.cannon.add(body);
+    const sight = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.2), darkM);
+    sight.position.set(0, 0.15, 0.22);
+    this.cannon.add(sight);
+    const grip = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.3, 0.15), darkM);
+    grip.position.set(0, -0.2, 0.02); grip.rotation.x = 0.5;
+    this.cannon.add(grip);
+    const tip = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, 0.24), glowMat);
+    tip.position.z = 0.68;
     this.cannon.add(tip);
     this.tip = tip;
 
-    /* muzzle flash */
+    /* muzzle flash — soft radial glow, kept small so the blast never whites out */
+    const fc = document.createElement('canvas'); fc.width = fc.height = 64;
+    const fg = fc.getContext('2d');
+    const fgr = fg.createRadialGradient(32, 32, 0, 32, 32, 32);
+    fgr.addColorStop(0, 'rgba(255,255,255,1)');
+    fgr.addColorStop(0.35, 'rgba(255,255,255,.55)');
+    fgr.addColorStop(1, 'rgba(255,255,255,0)');
+    fg.fillStyle = fgr; fg.fillRect(0, 0, 64, 64);
+    const flashTex = new THREE.CanvasTexture(fc);
+    flashTex.colorSpace = THREE.SRGBColorSpace;
     this.flashSprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      color: 0xaefaff, transparent: true, opacity: 0,
+      map: flashTex, color: 0xaefaff, transparent: true, opacity: 0,
       blending: THREE.AdditiveBlending, depthWrite: false,
     }));
-    this.flashSprite.scale.set(1.4, 1.4, 1);
+    this.flashSprite.scale.set(0.7, 0.7, 1);
     this.cannon.add(this.flashSprite);
-    this.flashSprite.position.z = 1.1;
+    this.flashSprite.position.z = 0.85;
 
-    this.light = new THREE.PointLight(0x7df9ff, 1.4, 9, 2);
+    this.light = new THREE.PointLight(0x06b6d4, 1.4, 9, 2);
     this.light.position.set(0, 1.3, 0.5);
     this.root.add(this.light);
 
     /* muzzle world pos helper object */
     this.muzzle = new THREE.Object3D();
-    this.muzzle.position.set(0.56, 1.28, 1.15);
+    this.muzzle.position.set(0.42, 1.0, 0.92);
     this.root.add(this.muzzle);
 
     /* shield arc under hero */
     this.shieldRing = new THREE.Mesh(
       new THREE.RingGeometry(0.95, 1.08, 48),
-      new THREE.MeshBasicMaterial({ color: 0x7df9ff, transparent: true, opacity: 0.5,
+      new THREE.MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.5,
         blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false }));
     this.shieldRing.rotation.x = -Math.PI / 2;
     this.shieldRing.position.y = 0.05;
@@ -143,16 +196,15 @@ export class Hero {
 
   fire() {
     this.recoil = 1;
-    this.flashSprite.material.opacity = 1;
-    this.light.intensity = 6;
+    this.flashSprite.material.opacity = 0.6;
   }
 
   hitFlash() {
     this.coreMat.emissive.set(0xff5f6d);
     this.light.color.set(0xff5f6d);
     setTimeout(() => {
-      this.coreMat.emissive.set(0x7df9ff);
-      this.light.color.set(0x7df9ff);
+      this.coreMat.emissive.set(0x06b6d4);
+      this.light.color.set(0x06b6d4);
     }, 220);
   }
 
@@ -198,7 +250,7 @@ export class Hero {
       vx = this.dashVX; vz = this.dashVZ;
       vfx.particles.spawn(
         new THREE.Vector3(this.pos.x, 0.6, this.pos.z),
-        new THREE.Vector3(0, 0.4, 0), new THREE.Color(0x7df9ff),
+        new THREE.Vector3(0, 0.4, 0), new THREE.Color(0x06b6d4),
         { size: 8, dur: 0.4, drag: 3 });
     } else {
       this.dashCd = Math.max(0, this.dashCd - dt);
@@ -229,7 +281,7 @@ export class Hero {
 
     /* cannon recoil + flash */
     this.recoil = Math.max(0, this.recoil - dt * 5);
-    this.cannon.position.z = 0.1 - this.recoil * 0.22;
+    this.cannon.position.z = 0.12 - this.recoil * 0.18;
     this.flashSprite.material.opacity = Math.max(0, this.flashSprite.material.opacity - dt * 6);
     this.flashSprite.material.rotation = Math.random() * Math.PI;
     this.light.intensity = THREE.MathUtils.lerp(this.light.intensity, this._lightBase, dt * 10);
