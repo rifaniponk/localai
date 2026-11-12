@@ -252,7 +252,7 @@ function seek(e, dt, speedMul = 1) {
 
 const DEFS = {
   shardling: {
-    hp: 1, radius: 0.85, speed: 2.0, edgeColor: 0xffc46b, aimY: 1.0,
+    hp: 1, radius: 0.85, speed: 1.25, edgeColor: 0xffc46b, aimY: 1.0,
     pickSpawn() {
       const a = Math.random() * Math.PI * 2;
       const r = ARENA_R * (0.55 + Math.random() * 0.4);
@@ -279,7 +279,7 @@ const DEFS = {
   },
 
   golem: {
-    hp: 2, radius: 1.15, speed: 1.15, edgeColor: 0xffc46b, aimY: 1.2, baseY: 0.55,
+    hp: 2, radius: 1.15, speed: 0.85, edgeColor: 0xffc46b, aimY: 1.2, baseY: 0.55,
     pickSpawn() {
       const a = Math.random() * Math.PI * 2;
       const r = ARENA_R * (0.7 + Math.random() * 0.3);
@@ -363,12 +363,12 @@ const DEFS = {
       e.body.rotation.y = Math.atan2(heroP.x - e.group.position.x, heroP.z - e.group.position.z);
       e.hopT = (e.hopT ?? 1.2) - dt;
       if (e.hopT <= 0) {
-        e.hopT = 1.6 - Math.min(0.8, e.mgr.game.wave * 0.03);
+        e.hopT = 1.9 - Math.min(0.9, e.mgr.game.wave * 0.03);
         const g = e.group, hero = e.mgr.game.hero.pos;
         e.mgr.vfx.spawnRing(g.position, 0x06b6d4, 1.6, 0.4);
         const dx = hero.x - g.position.x, dz = hero.z - g.position.z;
         const d = Math.hypot(dx, dz) || 1;
-        const step = Math.min(d, 2.8);
+        const step = Math.min(d, 2.2);
         g.position.x += (dx / d) * step;
         g.position.z += (dz / d) * step;
         e.mgr.vfx.spawnRing(g.position, 0x06b6d4, 1.6, 0.4);
@@ -378,7 +378,7 @@ const DEFS = {
   },
 
   sentinel: {
-    hp: 1, radius: 1.0, speed: 1.6, edgeColor: 0x7df0ff, aimY: 1.4, ranged: true,
+    hp: 1, radius: 1.0, speed: 1.0, edgeColor: 0x7df0ff, aimY: 1.4, ranged: true,
     pickSpawn() {
       const a = Math.random() * Math.PI * 2;
       const r = ARENA_R * (0.85 + Math.random() * 0.12);
@@ -448,7 +448,7 @@ const DEFS = {
 
   /* ------------- boss ------------- */
   titan: {
-    hp: 3, radius: 2.4, speed: 0.6, edgeColor: 0xff5f6d, aimY: 2.2, boss: true, baseY: 1.2,
+    hp: 3, radius: 2.4, speed: 0.45, edgeColor: 0xff5f6d, aimY: 2.2, boss: true, baseY: 1.2,
     pickSpawn() {
       const a = Math.random() * Math.PI * 2;
       const r = ARENA_R * 0.92;
@@ -510,8 +510,8 @@ const DEFS = {
       const g = e.group, hero = e.mgr.game.hero.pos;
       const d = Math.hypot(hero.x - g.position.x, hero.z - g.position.z) || 1;
       if (d < 7) {
-        g.position.x -= ((hero.x - g.position.x) / d) * e.def.speed * dt * 1.6;
-        g.position.z -= ((hero.z - g.position.z) / d) * e.def.speed * dt * 1.6;
+        g.position.x -= ((hero.x - g.position.x) / d) * e.def.speed * dt * 1.2;
+        g.position.z -= ((hero.z - g.position.z) / d) * e.def.speed * dt * 1.2;
       }
       /* spawn shardlings */
       e.spawnT = (e.spawnT ?? 4) - dt;
@@ -583,7 +583,7 @@ export class Enemies {
       [kinds[i], kinds[j]] = [kinds[j], kinds[i]];
     }
     kinds.forEach((k, i) => this.queue.push({
-      t: i === 0 ? 0.6 : (1.7 - Math.min(1.0, wave * 0.05)),
+      t: i === 0 ? 0.9 : (2.0 - Math.min(1.1, wave * 0.05)),
       type: k,
     }));
     this.waveTotal = total;
